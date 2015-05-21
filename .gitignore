@@ -3,3 +3,5 @@
 /build
 /__pycache__
 /test
+/thumbs/*
+/log/*
