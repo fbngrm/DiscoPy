@@ -5,3 +5,5 @@
 /test
 /thumbs/*
 /log/*
+auth.py
+

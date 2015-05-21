@@ -25,12 +25,13 @@ from imageloader import ImageHandler
 from discogs_client import Client
 import urllib2
 
-sys.setdefaultencoding('utf-8')
+try:
+    from auth import CONSUMER_KEY, CONSUMER_SECRET, TOKEN, SECRET
+except:
+    print 'Discogs OAuth credentials are missing!'
 
-CONSUMER_KEY = u'YCHnZAvCExYsNdToncxg'
-CONSUMER_SECRET = u'GjutzgPzBwTPkSOUmVEAHsQnfZKWKmhZ'
-TOKEN = u'AyEcThzRVKwWlKtkgYWObTDbxcpfqiQoVYpKpOuL'
-SECRET = u'zNMTqemlkZfPwpMsIpkVciVqBpOpFaNPlLzADVnu'
+#sys.setdefaultencoding('utf-8')
+
 CHCK_NTWRK = 'http://74.125.228.100'
 PRGRSS_ICN = 'progress.gif'
 ICN_DIR = 'icons'
