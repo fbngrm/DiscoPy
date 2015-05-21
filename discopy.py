@@ -381,7 +381,8 @@ class DiscoPy(QtGui.QMainWindow):
             imagepath = os.path.join(imagedir, imagename)
             # Download preview image in a worker thread if it does not exist.
             if not os.path.isfile(imagepath):
-                self._run_worker(lambda: self._show_thumb(label, imagepath), self._image_handler.get_file, imagepath, uri150)
+                self._run_worker(lambda: self._show_thumb(label, imagepath), \
+                    self._image_handler.get_file, imagepath, uri150)
             else:
                 self._show_thumb(label, imagepath)
 
