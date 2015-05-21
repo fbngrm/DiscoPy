@@ -6,9 +6,15 @@ Copyright 2015 Fabian Grimme
 
 This file is part of DiscoPy.
 
-DiscoPy is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-DiscoPy is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-You should have received a copy of the GNU General Public License along with DiscoPy. If not, see <http://www.gnu.org/licenses/>.
+DiscoPy is free software: you can redistribute it and/or modify it under the 
+terms of the GNU General Public License as published by the Free Software 
+Foundation, either version 3 of the License, or (at your option) any later 
+version.
+DiscoPy is distributed in the hope that it will be useful, but WITHOUT ANY 
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR 
+A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+You should have received a copy of the GNU General Public License along with 
+DiscoPy. If not, see <http://www.gnu.org/licenses/>.
 """
 
 import re
@@ -141,7 +147,6 @@ class DiscoPy(QtGui.QMainWindow):
         self._set_syntax()
 
     def _init_drop_search(self):
-        print 'init drop search'
         release_title = self._get_tags()
         if release_title:
             self._query = release_title
@@ -169,7 +174,8 @@ class DiscoPy(QtGui.QMainWindow):
             self._run_worker(self._show_data, self._parse_data)
 
     def _search(self):
-        """Move the search to a worker thread. Show data in the list widget when the request returns.
+        """Move the search to a worker thread. Show data in the list widget 
+           when the request returns.
         """
         if not self._query:
             return
@@ -180,7 +186,9 @@ class DiscoPy(QtGui.QMainWindow):
         self._run_worker(self._show_data, self._get_data)
 
     def _get_data(self):
-        """Send a discogs api request according to the request type. The request type is defined by the search query provided by the user input.
+        """Send a discogs api request according to the request type. The 
+           request type is defined by the search query provided by the 
+           user input.
         """
         self._logger.debug('get data')
         self._discogs_data, self._discogs_data_index = [], 0
@@ -212,9 +220,12 @@ class DiscoPy(QtGui.QMainWindow):
             self._logger.error(traceback.format_exc())
 
     def _parse_data(self):
-        """Parse the discogs response to a simple data object. Since the discgos client uses lazy instatiation this is needed to move all api requests to one worker thread.
+        """Parse the discogs response to a simple data object. Since the 
+           discgos client uses lazy instatiation this is needed to move all 
+           api requests to one worker thread.
         """
-        # Get data from the discogs seach results for the current page specified by ´self._discogs_data_index´.
+        # Get data from the discogs seach results for the current page 
+        # specified by ´self._discogs_data_index´.
         discogs_data = self._discogs_data[self._discogs_data_index]
 
         # Set id of the currently displayed release.
@@ -237,26 +248,42 @@ class DiscoPy(QtGui.QMainWindow):
 
         # Parse discogs_data.
         release_data = {}
-        release_data['title'] = getattr(discogs_data, 'title') or 'Unknown' if hasattr(discogs_data, 'title') else 'Unknown'
-        release_data['year'] = str(getattr(discogs_data, 'year') or 'Unknown') if hasattr(discogs_data, 'year') else 'Unknown'
-        release_data['country'] = getattr(discogs_data, 'country') or 'Unknown' if hasattr(discogs_data, 'country') else 'Unknown'
+        release_data['title'] = getattr(discogs_data, 'title') or 'Unknown' \
+            if hasattr(discogs_data, 'title') else 'Unknown'
+        release_data['year'] = str(getattr(discogs_data, 'year') or 'Unknown') \
+            if hasattr(discogs_data, 'year') else 'Unknown'
+        release_data['country'] = getattr(discogs_data, 'country') or \
+            'Unknown' if hasattr(discogs_data, 'country') else 'Unknown'
 
-        release_data['genres'] = ' ,'.join(genre for genre in getattr(discogs_data, 'genres') or ['Unknown']) if hasattr(discogs_data, 'genres') else 'Unknown'
+        release_data['genres'] = ' ,'.join(genre for genre in \
+            getattr(discogs_data, 'genres') or ['Unknown']) \
+            if hasattr(discogs_data, 'genres') else 'Unknown'
 
-        #release_data['artist'] = getattr(discogs_data.artists[0], 'name') or 'Unknown' if hasattr(discogs_data, 'artists') else 'Unknown'
+        #release_data['artist'] = getattr(discogs_data.artists[0], 'name') 
+        # or 'Unknown' if hasattr(discogs_data, 'artists') else 'Unknown'
 
-        release_data['artist'] = ' ,'.join(getattr(artist, 'name') for artist in getattr(discogs_data, 'artists') or ['Unknown']) if hasattr(discogs_data, 'artists') else 'Unknown'
+        release_data['artist'] = ' ,'.join(getattr(artist, 'name') \
+            for artist in getattr(discogs_data, 'artists') \
+            or ['Unknown']) if hasattr(discogs_data, 'artists') \
+            else 'Unknown'
 
-        #release_data['label'] = getattr(discogs_data.labels[0], 'name') if hasattr(discogs_data, 'labels') else 'Unknown'
+        #release_data['label'] = getattr(discogs_data.labels[0], 'name') 
+        # if hasattr(discogs_data, 'labels') else 'Unknown'
 
-        release_data['label'] = ' ,'.join(getattr(label, 'name') for label in getattr(discogs_data, 'labels') or ['Unknown']) if hasattr(discogs_data, 'labels') else 'Unknown'
+        release_data['label'] = ' ,'.join(getattr(label, 'name') \
+            for label in getattr(discogs_data, 'labels') \
+            or ['Unknown']) if hasattr(discogs_data, 'labels') \
+            else 'Unknown'
 
-        release_data['images'] = getattr(discogs_data, 'images') or [] if hasattr(discogs_data, 'images') else []
+        release_data['images'] = getattr(discogs_data, 'images') \
+            or [] if hasattr(discogs_data, 'images') else []
 
-        release_data['id'] = getattr(discogs_data, 'id') if hasattr(discogs_data, 'id') else 'Unknown ID'
+        release_data['id'] = getattr(discogs_data, 'id') \
+            if hasattr(discogs_data, 'id') else 'Unknown ID'
 
         # Build release name.
-        release_name = self._name_builder.build_name(d_syntax, release_data, None)
+        release_name = self._name_builder.build_name(\
+            d_syntax, release_data, None)
         release_data['name'] = release_name
 
         # Store the parsed release data for the current search.
@@ -276,7 +303,8 @@ class DiscoPy(QtGui.QMainWindow):
         self._logger.debug('parsing finished')
 
     def _show_data(self):
-        """initialize the search list widget with the parsed data from the discogs search results.
+        """Initialize the search list widget with the parsed data 
+           from the discogs search results.
         """
         self._logger.debug('show data fior release id: %s' % (str(self._parsed_data_id)))
 
@@ -321,7 +349,8 @@ class DiscoPy(QtGui.QMainWindow):
         self._logger.debug('finished showing data')
 
     def _parse_url(self, url):
-        """Parse the discogs url to determine the release type and extract the release id.
+        """Parse the discogs url to determine the release type and 
+           extract the release id.
         """
         self._logger.debug('parse url: ' + unicode(url))
         search = re.search('(master|release){1}/{1}(\d*)', url, re.UNICODE)
@@ -377,7 +406,8 @@ class DiscoPy(QtGui.QMainWindow):
         self.connect(self._ui.lbl_cvr, QtCore.SIGNAL('clicked'), self._get_thumb)
 
     def _update_list(self):
-        """Update the list widget when syntax changes are made in the syntax line edit fields.
+        """Update the list widget when syntax changes are 
+           made in the syntax line edit fields.
         """
 
         self._logger.debug('update list')
@@ -407,8 +437,10 @@ class DiscoPy(QtGui.QMainWindow):
 
     def _run_worker(self, slot, function, *args, **kwargs):
         """Provides a g.eneric worker thread.
-        @param slot: callback function to be called when the function is finished.
-        @param function: callable that should be called from within the worker thread.
+        @param slot: callback function to be called when the 
+        function is finished.
+        @param function: callable that should be called from 
+        within the worker thread.
         @param args: argument list passed to ´function´.
         @param kwargs: argument dictionary passed to ´function´.
         """
@@ -436,7 +468,8 @@ class DiscoPy(QtGui.QMainWindow):
         worker.finished.connect(thread.quit)
         # Call search immediately when the thread starts.
         thread.started.connect(worker.run)
-        # Remove references to the worker and it's thread after the thread finished.
+        # Remove references to the worker and it's thread 
+        # after the thread finished.
         thread.finished.connect(lambda: self._thread_pool.remove(thread))
         thread.finished.connect(lambda: self._worker_pool.remove(worker))
         thread.finished.connect(self._progress.stop)
@@ -453,7 +486,8 @@ class DiscoPy(QtGui.QMainWindow):
         self._logger.debug('thread started')
 
     def _rename_file(self, item, new_item):
-        """Rename the release directory if it exists and no other directory with the same name already exists.
+        """Rename the release directory if it exists and no 
+           other directory with the same name already exists.
         """
 
         if not new_item or not item:
@@ -466,7 +500,8 @@ class DiscoPy(QtGui.QMainWindow):
             return filename in os.listdir(directory)
 
         def get_data(item, new_item):
-            """Get the QListWidgetItem and the release information for renaming the release directory.
+            """Get the QListWidgetItem and the release information 
+               for renaming the release directory.
             """
             data = {}
 
@@ -493,7 +528,8 @@ class DiscoPy(QtGui.QMainWindow):
             return data
 
         try:
-            # Dictionary containing the information to rename the release directory.
+            # Dictionary containing the information to rename the 
+            # release directory.
             data = get_data(item, new_item)
 
             rename = True
@@ -522,7 +558,10 @@ class DiscoPy(QtGui.QMainWindow):
             self._logger.error(traceback.format_exc())
 
     def _rename(self):
-        """Rename files with the new filenames build according to the user defined syntax from discogs data. Use the list widgets as data source / model to get the pathes for the renamed files and the new filenames.
+        """Rename files with the new filenames build according to 
+           the user defined syntax from discogs data. Use the list 
+           widgets as data source / model to get the pathes for 
+           the renamed files and the new filenames.
         """
         self._logger.debug('start renaming')
 
@@ -548,14 +587,16 @@ class DiscoPy(QtGui.QMainWindow):
                 self._logger.error(traceback.format_exc())
 
         for track_item in track_items:
-            # Update the url of the track/file with the new directory name of the release directory.
+            # Update the url of the track/file with the new directory name 
+            # of the release directory.
             track_item[0].url = track_item[0].url.replace(old_dir_url, new_dir_url)
             self._logger.debug('rename track')
             self._rename_file(track_item[0], track_item[1])
 
 
     def _set_tags(self):
-        """Set the meta tags in the audio files from the discogs data.
+        """Set the meta tags in the audio files from the 
+           discogs data.
         """
         self._logger.debug('start setting tags')
 
@@ -586,7 +627,8 @@ class DiscoPy(QtGui.QMainWindow):
             self._logger.debug('finished setting tags')
 
     def _get_tags(self):
-        """Set the meta tags in the audio files from the discogs data.
+        """Set the meta tags in the audio files from the 
+           discogs data.
         """
         self._logger.debug('getting tags')
 
@@ -635,7 +677,8 @@ class DiscoPy(QtGui.QMainWindow):
         if not filepath:
             return
 
-        # Get the image urls via the first item in the result list that contains the image data.
+        # Get the image urls via the first item in the 
+        # result list that contains the image data.
         for i in range(self._ui.lst_nw.count()):
             item_nw = self._ui.lst_nw.item(i)
             if hasattr(item_nw, 'data'):
@@ -660,7 +703,10 @@ class DiscoPy(QtGui.QMainWindow):
         self._ui.btn_prv.setEnabled(not self._ui.btn_prv.isEnabled())
 
     def _set_query(self, qlineedit):
-        """Set the search query for discogs api calls. Get the query type to be used to determine which api resource should be called. Query types are stored in the listwidgets itself due to a lack of a model.
+        """Set the search query for discogs api calls. Get the 
+           query type to be used to determine which api resource 
+           should be called. Query types are stored in the 
+           listwidgets itself due to a lack of a model.
         Possible query types:
             url:             search for releases by id.
             release_name:     search for releases by name.
