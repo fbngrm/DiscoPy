@@ -170,7 +170,8 @@ class DiscoPy(QtGui.QMainWindow):
             self._logger.debug('skip results - step: %d - index: %d' % (step, self._discogs_data_index))
             # Disable the search buttons during search process.
             self._toggle_search_buttons()
-            # Skip and parse the search results in a worker thread. Show data when the ´data_ready´ signal is emitted.
+            # Skip and parse the search results in a worker thread. 
+            # Show data when the ´data_ready´ signal is emitted.
             self._run_worker(self._show_data, self._parse_data)
 
     def _search(self):
@@ -328,7 +329,8 @@ class DiscoPy(QtGui.QMainWindow):
         self._ui.lst_nw.sortItems(QtCore.Qt.AscendingOrder)
 
         # Set list widget for the release.
-        self._ui.lst_nw.data_dropped(release_data['release']['name'], "release", meta=release_data, editable=True)
+        self._ui.lst_nw.data_dropped(release_data['release']['name'], \
+            "release", meta=release_data, editable=True)
 
         # Color the list widget background alternatingly.
         self._ui.lst_nw.color_items()
@@ -661,7 +663,8 @@ class DiscoPy(QtGui.QMainWindow):
                     download_path = os.path.join(filepath, filename + str(ext))
                     if not os.path.isdir(filepath):
                         os.makedirs(filepath)
-                    self._run_worker(lambda: self._ui.btn_rnm.setEnabled(True), self._image_handler.get_file, download_path, uri)
+                    self._run_worker(lambda: self._ui.btn_rnm.setEnabled(True)\
+                        , self._image_handler.get_file, download_path, uri)
             except Exception:
                 self._logger.error(traceback.format_exc())
             self._ui.btn_imgs.setEnabled(True)
@@ -798,7 +801,8 @@ if __name__ == "__main__":
         sleep(0.001)
         app.processEvents()
         
-    win = DiscoPy(Ui_MainWindow(), Client('discopy/0.1', CONSUMER_KEY, CONSUMER_SECRET, TOKEN, SECRET), NameBuilder(), TagData, ImageHandler())
+    win = DiscoPy(Ui_MainWindow(), Client('discopy/0.1', CONSUMER_KEY, \
+        CONSUMER_SECRET, TOKEN, SECRET), NameBuilder(), TagData, ImageHandler())
     win.setWindowIcon(QtGui.QIcon(iconpath))
     splash.finish(win)
 
