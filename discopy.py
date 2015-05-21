@@ -15,6 +15,7 @@ import re
 import os
 import sys
 import json
+import logging
 from time import time, sleep
 import traceback
 from PyQt4 import QtGui, QtCore
@@ -23,6 +24,7 @@ from namebuilder import NameBuilder
 from tagdata import TagData
 from imageloader import ImageHandler
 from discogs_client import Client
+from os.path import expanduser
 import urllib2
 
 try:
@@ -58,17 +60,18 @@ class Worker(QtCore.QObject):
 
     def __init__(self, function, *args, **kwargs):
         super(Worker, self).__init__()
-        logging.debug('create worker')
+        self._logger = logging.getLogger('discopy.main')
+        self._logger.debug('create worker')
         self._function = function
         self._args = args
         self._kwargs = kwargs
 
     @QtCore.pyqtSlot()
     def run(self):
-        logging.debug('call ' + self._function.__name__)
+        self._logger.debug('call ' + self._function.__name__)
         data = self._function(*self._args, **self._kwargs)
-        logging.debug('finished ' + self._function.__name__)
-        logging.debug('thread id of worker: ' + str(QtCore.QThread.currentThreadId()))
+        self._logger.debug('finished ' + self._function.__name__)
+        self._logger.debug('thread id of worker: ' + str(QtCore.QThread.currentThreadId()))
         self.data_ready.emit(data)
         self.finished.emit()
 
@@ -101,6 +104,10 @@ class DiscoPy(QtGui.QMainWindow):
         self._thread_pool = []
         # Refereances to worker objects
         self._worker_pool = []
+        # Timer to ensure worker threads are started just once per second.
+        self._worker_start = 0
+        # logging
+        self._logger = logging.getLogger('discopy.main')
         # Signals
         self._ui.btn_imgs.clicked.connect(self._get_images)
         self._ui.btn_srch.clicked.connect(self._search)
@@ -120,6 +127,7 @@ class DiscoPy(QtGui.QMainWindow):
         self._ui.lndt_url.focus.connect(self._set_focus)
         self._ui.lndt_rls.focus.connect(self._set_focus)
         self._ui.lndt_brcde.focus.connect(self._set_focus)
+        self._ui.lst_ld.drop_finished.connect(self._init_drop_search)
         self.connect(self._ui.lbl_cvr, QtCore.SIGNAL('clicked'), self._get_thumb)
         # Init
         self._set_focus()
@@ -131,6 +139,15 @@ class DiscoPy(QtGui.QMainWindow):
         self._ui.lbl_prgrss.setMovie(self._progress)
         # Initialize the syntax line edits.
         self._set_syntax()
+
+    def _init_drop_search(self):
+        print 'init drop search'
+        release_title = self._get_tags()
+        if release_title:
+            self._query = release_title
+            self._query_type = 'release'
+            self._ui.lndt_rls.setText(release_title)
+            self._search()
 
     def center(self):
         """Center the mainwindow when it is started.
@@ -145,7 +162,7 @@ class DiscoPy(QtGui.QMainWindow):
         """
         if len(self._discogs_data) >= 1:
             self._discogs_data_index = (self._discogs_data_index + step) % (len(self._discogs_data))
-            logging.debug('skip results - step: %d - index: %d' % (step, self._discogs_data_index))
+            self._logger.debug('skip results - step: %d - index: %d' % (step, self._discogs_data_index))
             # Disable the search buttons during search process.
             self._toggle_search_buttons()
             # Skip and parse the search results in a worker thread. Show data when the ´data_ready´ signal is emitted.
@@ -156,7 +173,7 @@ class DiscoPy(QtGui.QMainWindow):
         """
         if not self._query:
             return
-        logging.debug('search for: ' + self._query)
+        self._logger.debug('search for: ' + self._query)
         # Disable the search buttons during search process.
         self._toggle_search_buttons()
         # Run the search in a worker thread. Show search results when the ´data_ready´ signal is emitted.
@@ -165,26 +182,26 @@ class DiscoPy(QtGui.QMainWindow):
     def _get_data(self):
         """Send a discogs api request according to the request type. The request type is defined by the search query provided by the user input.
         """
-        logging.debug('get data')
+        self._logger.debug('get data')
         self._discogs_data, self._discogs_data_index = [], 0
         try:
             if self._query_type == 'url':
                 type_, id_ = self._parse_url(self._query)
                 # Search for a master release by id.
                 if type_ == 'master':
-                    logging.debug('get master by id: ' + self._query)
+                    self._logger.debug('get master by id: ' + self._query)
                     self._discogs_data.append(self._client.master(int(id_)))
                 # Search for a release by id.
                 elif type_ == 'release':
-                    logging.debug('get release by id: ' + self._query)
+                    self._logger.debug('get release by id: ' + self._query)
                     self._discogs_data.append(self._client.release(int(id_)))
             # Search for a release by name.
             elif self._query_type == 'release':
-                logging.debug('search release by name: ' + self._query)
+                self._logger.debug('search release by name: ' + self._query)
                 self._discogs_data = self._client.search(self._query, type='release')
             # Search for a release by barcode.
             elif self._query_type == 'barcode':
-                logging.debug('get release by barcode: ' + self._query)
+                self._logger.debug('get release by barcode: ' + self._query)
                 self._discogs_data = self._client.search(barcode=self._query)
 
             # Parse the data returned by discogs api.
@@ -192,7 +209,7 @@ class DiscoPy(QtGui.QMainWindow):
                 self._parse_data()
 
         except Exception:
-            logging.error(traceback.format_exc())
+            self._logger.error(traceback.format_exc())
 
     def _parse_data(self):
         """Parse the discogs response to a simple data object. Since the discgos client uses lazy instatiation this is needed to move all api requests to one worker thread.
@@ -203,7 +220,7 @@ class DiscoPy(QtGui.QMainWindow):
         # Set id of the currently displayed release.
         self._parsed_data_id = discogs_data.id
 
-        logging.debug('parse data for release id: %s' % (str(self._parsed_data_id)))
+        self._logger.debug('parse data for release id: %s' % (str(self._parsed_data_id)))
 
         # Reset the thumb index for artwork preview.
         self._thumb_index = 0
@@ -256,15 +273,21 @@ class DiscoPy(QtGui.QMainWindow):
                 track_data['name'] = track_name
                 # Store the track data.
                 self._parsed_data[self._parsed_data_id]['tracks'][track_name] = track_data
-        logging.debug('parsing finished')
+        self._logger.debug('parsing finished')
 
     def _show_data(self):
         """initialize the search list widget with the parsed data from the discogs search results.
         """
-        logging.debug('show data fior release id: %s' % (str(self._parsed_data_id)))
+        self._logger.debug('show data fior release id: %s' % (str(self._parsed_data_id)))
 
         # Get data for the current release.
-        release_data = self._parsed_data[self._parsed_data_id]
+        try:
+            release_data = self._parsed_data[self._parsed_data_id]
+        except Exception:
+            self._logger.error(traceback.format_exc())
+            # Enable the search buttons.
+            self._toggle_search_buttons()
+            return
 
         # Clear list first.
         self._ui.lst_nw.clear()
@@ -295,18 +318,18 @@ class DiscoPy(QtGui.QMainWindow):
         # Get the artwork preview.
         self._get_thumb()
 
-        logging.debug('finished showing data')
+        self._logger.debug('finished showing data')
 
     def _parse_url(self, url):
         """Parse the discogs url to determine the release type and extract the release id.
         """
-        logging.debug('parse url: ' + unicode(url))
+        self._logger.debug('parse url: ' + unicode(url))
         search = re.search('(master|release){1}/{1}(\d*)', url, re.UNICODE)
         if search:
-            logging.debug('type: %s - id: %s' % (search.group(1), str(search.group(2))))
+            self._logger.debug('type: %s - id: %s' % (search.group(1), str(search.group(2))))
             return (search.group(1), search.group(2))
         else:
-            logging.debug('type: None, id: None')
+            self._logger.debug('type: None, id: None')
             return (None, None)
 
     def _get_thumb(self):
@@ -317,7 +340,7 @@ class DiscoPy(QtGui.QMainWindow):
             # Get data for the current release.
             release_data = self._parsed_data[self._parsed_data_id]['release']
 
-            logging.debug('get thumb for release id: ' + str(release_data['id']))
+            self._logger.debug('get thumb for release id: ' + str(release_data['id']))
             label = self._ui.lbl_cvr
             uri150 = release_data['images'][self._thumb_index]['uri150']
             imagename = uri150.split('/')[-1]
@@ -331,28 +354,33 @@ class DiscoPy(QtGui.QMainWindow):
             else:
                 self._show_thumb(label, imagepath)
 
+            self.disconnect(self._ui.lbl_cvr, QtCore.SIGNAL('clicked'), self._get_thumb)
+
         except Exception:
-            logging.error(traceback.format_exc())
-        logging.debug('finished getting thumbs')
+            self._logger.error(traceback.format_exc())
+        self._logger.debug('finished getting thumbs')
 
     def _show_thumb(self, label, imagepath):
         """Show the artwork preview in the preview label.
         """
-        logging.debug('show thumb')
+        self._logger.debug('show thumb')
 
         images = self._parsed_data[self._parsed_data_id]['release'].get('images') or []
 
         if not os.path.isfile(imagepath):
             return
+
         if len(images):
             label.setPixmap(QtGui.QPixmap(imagepath))
             self._thumb_index = (self._thumb_index + 1) % len(images)
+
+        self.connect(self._ui.lbl_cvr, QtCore.SIGNAL('clicked'), self._get_thumb)
 
     def _update_list(self):
         """Update the list widget when syntax changes are made in the syntax line edit fields.
         """
 
-        logging.debug('update list')
+        self._logger.debug('update list')
 
         for i in range(self._ui.lst_nw.count()):
             item = self._ui.lst_nw.item(i)
@@ -366,7 +394,7 @@ class DiscoPy(QtGui.QMainWindow):
             if item.type == "release":
                 syntax = unicode(self._ui.lndt_f_sntx.text())
                 new_txt = self._name_builder.build_name(syntax, item.data, None)
-                item.setText(new_txt)
+                item.setText(new_txt.strip())
 
             if not hasattr(item, 'track'):
                 continue
@@ -375,7 +403,7 @@ class DiscoPy(QtGui.QMainWindow):
                 syntax = unicode(self._ui.lndt_t_sntx.text())
                 new_txt = self._name_builder.build_name(syntax, item.data, item.track)
                 item.setText(new_txt)
-        logging.debug('finished updating list')
+        self._logger.debug('finished updating list')
 
     def _run_worker(self, slot, function, *args, **kwargs):
         """Provides a g.eneric worker thread.
@@ -385,19 +413,19 @@ class DiscoPy(QtGui.QMainWindow):
         @param kwargs: argument dictionary passed to ´function´.
         """
 
-        logging.debug('thread id: ' + str(QtCore.QThread.currentThreadId()))
+        self._logger.debug('thread id: ' + str(QtCore.QThread.currentThreadId()))
         self._ui.lbl_prgrss.show()
         self._progress.start()
         # No parent!
         thread = QtCore.QThread()
         # Need to keep a reference to the thread while it is running.
         self._thread_pool.append(thread)
-        logging.debug('threads in pool ' + str(len(self._thread_pool)))
+        self._logger.debug('threads in pool ' + str(len(self._thread_pool)))
         # No parent!
         worker = Worker(function, *args, **kwargs)
         # Need to keep a reference to the worker while it is living inside the worker thread.
         self._worker_pool.append(worker)
-        logging.debug('worker in pool ' + str(len(self._worker_pool)))
+        self._logger.debug('worker in pool ' + str(len(self._worker_pool)))
 
         # Call ´_show_data´ when the seach objects ´data_ready´ signal is emitted.
         if slot:
@@ -413,14 +441,29 @@ class DiscoPy(QtGui.QMainWindow):
         thread.finished.connect(lambda: self._worker_pool.remove(worker))
         thread.finished.connect(self._progress.stop)
         thread.finished.connect(self._ui.lbl_prgrss.hide)
-        logging.debug('start new thread')
+        self._logger.debug('start new thread')
+
+        # Ensure api calls are scheduled to one call per second.
+        while time() - self._worker_start < 1:
+            sleep(0.001)
+            app.processEvents()
         # Run
+        self._worker_start = time()
         thread.start()
-        logging.debug('thread started')
+        self._logger.debug('thread started')
 
     def _rename_file(self, item, new_item):
         """Rename the release directory if it exists and no other directory with the same name already exists.
         """
+
+        if not new_item or not item:
+            self._logger.debug('skipping: item: %s - new item: %s' % (str(item), str(new_item)))
+            return
+
+        def isfile_casesensitive(path):
+            if not os.path.isfile(path): return False   # exit early
+            directory, filename = os.path.split(path)
+            return filename in os.listdir(directory)
 
         def get_data(item, new_item):
             """Get the QListWidgetItem and the release information for renaming the release directory.
@@ -430,6 +473,8 @@ class DiscoPy(QtGui.QMainWindow):
             filename = unicode(item.text())
             new_filename = unicode(new_item.text())
             url = item.url
+
+            self._logger.debug('getting data for: %s' % unicode(item.text()))
 
             # Append the file extension to the new url if tht file is not a directory.
             if os.path.isfile(url):
@@ -443,6 +488,8 @@ class DiscoPy(QtGui.QMainWindow):
             data['new_filename'] = new_filename
             data['item'] = item
 
+            self._logger.debug('data: %s' % data)
+
             return data
 
         try:
@@ -452,14 +499,17 @@ class DiscoPy(QtGui.QMainWindow):
             rename = True
 
             if data['url'] == data['new_url']:
+                self._logger.warn('skipping: old filename equals new filename')
                 rename = False
             if not os.path.exists(data['url']):
+                self._logger.warn('file does not exists: %s' % data['url'])
                 rename = False
-            if os.path.exists(data['new_url']):
+            if isfile_casesensitive(data['new_url']):
+                self._logger.warn('file already exists')
                 rename = False
 
             if rename:
-                logging.debug('rename file from: %s to: %s' % (data['url'], data['new_url']))
+                self._logger.debug('rename file from: %s to: %s' % (data['url'], data['new_url']))
 
                 # Rename the directory.
                 os.rename(data['url'], data['new_url'])
@@ -469,12 +519,12 @@ class DiscoPy(QtGui.QMainWindow):
                 data['item'].url = data['new_url']
 
         except Exception:
-            logging.error(traceback.format_exc())
+            self._logger.error(traceback.format_exc())
 
     def _rename(self):
         """Rename files with the new filenames build according to the user defined syntax from discogs data. Use the list widgets as data source / model to get the pathes for the renamed files and the new filenames.
         """
-        logging.debug('start renaming')
+        self._logger.debug('start renaming')
 
         old_dir_url, new_dir_url = '', ''
         track_items = []
@@ -487,7 +537,7 @@ class DiscoPy(QtGui.QMainWindow):
 
                 # Rename directory first.
                 if getattr(item, 'type') == 'release':
-                    logging.debug('rename directory')
+                    self._logger.debug('rename directory')
                     old_dir_url = item.url
                     self._rename_file(item, new_item)
                     new_dir_url = item.url
@@ -495,19 +545,19 @@ class DiscoPy(QtGui.QMainWindow):
                     track_items.append((item, new_item))
 
             except Exception:
-                logging.error(traceback.format_exc())
+                self._logger.error(traceback.format_exc())
 
         for track_item in track_items:
             # Update the url of the track/file with the new directory name of the release directory.
             track_item[0].url = track_item[0].url.replace(old_dir_url, new_dir_url)
-            logging.debug('rename track')
+            self._logger.debug('rename track')
             self._rename_file(track_item[0], track_item[1])
 
 
     def _set_tags(self):
         """Set the meta tags in the audio files from the discogs data.
         """
-        logging.debug('start setting tags')
+        self._logger.debug('start setting tags')
 
         for i in range(self._ui.lst_ld.count()):
             try:
@@ -515,7 +565,7 @@ class DiscoPy(QtGui.QMainWindow):
                 if getattr(item, 'type') == 'release':
                     continue
                 filepath = self._ui.lst_ld.item(i).url
-                logging.debug('set tags for: ' + item.text())
+                self._logger.debug('set tags for: ' + item.text())
 
                 data, track = item.data, item.track
 
@@ -532,28 +582,46 @@ class DiscoPy(QtGui.QMainWindow):
                 t.save()
 
             except Exception:
-                logging.error(traceback.format_exc())
-            logging.debug('finished setting tags')
+                self._logger.error(traceback.format_exc())
+            self._logger.debug('finished setting tags')
+
+    def _get_tags(self):
+        """Set the meta tags in the audio files from the discogs data.
+        """
+        self._logger.debug('getting tags')
+
+        for i in range(self._ui.lst_ld.count()):
+            try:
+                filepath = self._ui.lst_ld.item(i).url
+                if os.path.isdir(filepath):
+                    continue
+                t = self._tagger(filepath)
+                if t.album:
+                    return unicode(t.album).lower()
+
+            except Exception:
+                self._logger.error(traceback.format_exc())
+            self._logger.debug('finished getting tags')
 
     def _get_images(self):
         """Download the release artwork from the discogs api.
         """
-        logging.debug('get images')
+        self._logger.debug('get images')
 
         def get_files(images):
             self._ui.btn_imgs.setEnabled(False)
             try:
                 for i, image in enumerate(images):
                     uri = image.get('uri')
-                    logging.debug('download ' + uri)
+                    self._logger.debug('download ' + uri)
                     filename = 'artwork_' + str(i + 1).zfill(2).lower()
                     _, ext = os.path.splitext(uri)
                     download_path = os.path.join(filepath, filename + str(ext))
                     if not os.path.isdir(filepath):
                         os.makedirs(filepath)
-                    self._image_handler.get_file(download_path, uri)
+                    self._run_worker(lambda: self._ui.btn_rnm.setEnabled(True), self._image_handler.get_file, download_path, uri)
             except Exception:
-                logging.error(traceback.format_exc())
+                self._logger.error(traceback.format_exc())
             self._ui.btn_imgs.setEnabled(True)
 
         filepath, item = '', None
@@ -581,7 +649,7 @@ class DiscoPy(QtGui.QMainWindow):
         self._ui.btn_rnm.setEnabled(False)
 
         images = item.data.get('images') or []
-        self._run_worker(lambda: self._ui.btn_rnm.setEnabled(True), get_files, images)
+        get_files(images)
 
     def _toggle_search_buttons(self):
         """Toggle the button.
@@ -601,8 +669,8 @@ class DiscoPy(QtGui.QMainWindow):
         """
         self._query = unicode(qlineedit.text()).strip()
         self._query_type = qlineedit.query_type
-        logging.debug('setting query: ' + self._query)
-        logging.debug('setting query-type: ' + self._query_type)
+        self._logger.debug('setting query: ' + self._query)
+        self._logger.debug('setting query-type: ' + self._query_type)
 
     def _set_focus(self, qlineedit=None):
         """Visual support for the search query line edits.
@@ -630,7 +698,7 @@ class DiscoPy(QtGui.QMainWindow):
             sys.exit(0)
 
     def _save_syntax(self):
-        logging.debug('save_syntax')
+        self._logger.debug('save_syntax')
         release_syntax = unicode(self._ui.lndt_f_sntx.text())
         track_syntax = unicode(self._ui.lndt_t_sntx.text())
         syntax = {'track_syntax': track_syntax, 'release_syntax': release_syntax}
@@ -661,23 +729,37 @@ class DiscoPy(QtGui.QMainWindow):
             self._ui.lndt_t_sntx.setText(TRCK_SNTX)
 
 if __name__ == "__main__":
-    import logging
-
-    log_file = os.path.abspath(os.path.join(resource_path('..'), 'discopy.log'))
-    logging.basicConfig(filename=log_file, level=logging.DEBUG)
+    logpath = os.path.join(expanduser("~"), 'discopy')
+    if not os.path.isdir(logpath):
+        os.makedirs(logpath)
+    log_file = os.path.join(logpath, 'discopy.log')
+    logger = logging.getLogger('discopy.main')
+    file_log_handler = logging.FileHandler(log_file)
+    logger.addHandler(file_log_handler)
+    stderr_log_handler = logging.StreamHandler()
+    logger.addHandler(stderr_log_handler)
+    logger.setLevel(logging.DEBUG)
+    logger.debug('hello discopy')
 
     app = QtGui.QApplication(sys.argv)
+    iconpath = resource_path(os.path.join(ICN_DIR, 'discopy.ico'))
+        
     start = time()
-    iconpath = resource_path(os.path.join(ICN_DIR, SPLSH_SCRN))
-    splash = QtGui.QSplashScreen(QtGui.QPixmap(iconpath))
+    splashpath = resource_path(os.path.join(ICN_DIR, SPLSH_SCRN))
+    splash = QtGui.QSplashScreen(QtGui.QPixmap(splashpath))
     splash.show()
     while time() - start < 1:
         sleep(0.001)
         app.processEvents()
+        
     win = DiscoPy(Ui_MainWindow(), Client('discopy/0.1', CONSUMER_KEY, CONSUMER_SECRET, TOKEN, SECRET), NameBuilder(), TagData, ImageHandler())
-    win.setWindowIcon(QtGui.QIcon(os.path.join(iconpath, 'discopy_30px.png')))
+    win.setWindowIcon(QtGui.QIcon(iconpath))
     splash.finish(win)
+
+    #import ctypes
+    #appid = 'discopy.0.1'
+    #ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(appid)
+    
     win.center()
     win.show()
-    logging.info('Run')
     sys.exit(app.exec_())

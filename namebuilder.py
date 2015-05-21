@@ -49,7 +49,7 @@ class NameBuilder(object):
 
         for option in options.keys():
             if option in syntax:
-                syntax = syntax.replace(option, options[option])
+                syntax = syntax.replace(option, options[option]).strip()
 
         return re.sub('[\\\/]+', '-', syntax)
 

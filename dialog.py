@@ -53,6 +53,8 @@ class ClickableLabel(QtGui.QLabel):
 
 class DNDListWidget(QtGui.QListWidget):
 
+    drop_finished = QtCore.pyqtSignal()
+
     def __init__(self, parent):
         super(DNDListWidget, self).__init__(parent)
         self.setAcceptDrops(True)
@@ -122,6 +124,7 @@ class DNDListWidget(QtGui.QListWidget):
 
             # Color the list widget background alternatingly.
             self.color_items()
+            self.drop_finished.emit()
 
     def data_dropped(self, data, type_, editable=False, meta=None, url=None):
         # Get the icon for the listwidgetitem.
