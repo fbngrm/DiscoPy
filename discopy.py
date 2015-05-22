@@ -826,6 +826,9 @@ if __name__ == "__main__":
     file_log_handler = logging.FileHandler(log_file)
     logger.addHandler(file_log_handler)
     stderr_log_handler = logging.StreamHandler()
+    bash_formatter = logging.Formatter(fmt='%(threadName)s | ' \
+                '%(filename)s: %(lineno)d | %(levelname)s: %(message)s')
+    stderr_log_handler.setFormatter(bash_formatter)
     logger.addHandler(stderr_log_handler)
     logger.setLevel(logging.DEBUG)
     logger.debug('hello discopy')
