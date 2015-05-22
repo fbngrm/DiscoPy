@@ -38,7 +38,7 @@ SPPRTD = ['.mp3', '.aac', '.alac',
         ]
 ITM_TPS = {
     "release": "record_30px.png",
-    "track": "track_30px.jpg"
+    "track": "track_30px.png"
 }
 
 
