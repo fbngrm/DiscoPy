@@ -7,6 +7,7 @@ a = Analysis(['discopy.py'],
 a.datas.append(('cacert.pem', '..\\Lib\\site-packages\\requests\\cacert.pem', 'DATA'))
 icon_tree = Tree('D:\\f\\work\\discopy\\discopy\\icons', prefix='icons')
 thumb_tree = Tree('D:\\f\\work\\discopy\\discopy\\thumbs', prefix='thumbs')
+images_tree = Tree('D:\\f\\work\\discopy\\discopy\\images', prefix='images')
 settings_tree = Tree('D:\\f\\work\\discopy\\discopy\\settings', prefix='settings')
 pyz = PYZ(a.pure)
 exe = EXE(pyz,
@@ -16,6 +17,7 @@ exe = EXE(pyz,
           a.datas,
           icon_tree,
           thumb_tree,
+          images_tree,
           settings_tree,
           name='discopy.exe',
           debug=False,
