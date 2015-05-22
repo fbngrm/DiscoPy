@@ -45,6 +45,7 @@ PRGRSS_ICN = 'progress.gif'
 ICN_DIR = 'icons'
 SPLSH_SCRN = 'discopy_800px.png'
 THMB_DIR = 'thumbs'
+TMP_IMG_DIR = 'images'
 STNGS = 'settings'
 SNTX_STNGS = 'syntax.json'
 RLS_SNTX = "artist - release [labels year]"
@@ -102,6 +103,7 @@ class DiscoPy(QtGui.QMainWindow):
         # Simple model for the parsed discogs data.
         self._parsed_data = {}
         self._parsed_data_id = 0
+        self._img_download_pathes = {}
         # Index for the thumb preview of artwork images.
         self._thumb_index = 0
         # Animation to show download progress
@@ -581,7 +583,9 @@ class DiscoPy(QtGui.QMainWindow):
                 if getattr(item, 'type') == 'release':
                     self._logger.debug('rename directory')
                     old_dir_url = item.url
+                    release_id = new_item.data.get('id')
                     self._rename_file(item, new_item)
+                    self._set_img_download_path(release_id)
                     new_dir_url = item.url
                 else:
                     track_items.append((item, new_item))
@@ -648,55 +652,90 @@ class DiscoPy(QtGui.QMainWindow):
                 self._logger.error(traceback.format_exc())
             self._logger.debug('finished getting tags')
 
+    def _set_img_download_path(self, release_id):
+        # Get path from the release item in local list.
+        path_ = None
+        for i in range(self._ui.lst_ld.count()):
+            item_ld = self._ui.lst_ld.item(i)
+            if getattr(item_ld, 'type') == 'release':
+                path_ = item_ld.url
+        self._img_download_pathes[release_id] = path_
+        self._logger.debug('set image download path for release: %s to: %s' \
+            % (str(release_id), path_))
+
     def _get_images(self):
         """Download the release artwork from the discogs api.
         """
         self._logger.debug('get images')
 
-        def get_files(images):
+        def move_img(release_id, imagepath, new_filename):
+            """Move the image from the temp directory to 
+               the release directory.
+            """
+            newdir = self._img_download_pathes.get(release_id) or 'none'
+            new_imagepath = os.path.join(newdir, new_filename)
+            self._logger.debug('moving image: %s to: %s' % \
+                (imagepath, new_imagepath))
+            # Move the image to the potentially renamed directory.
+            try:
+                os.rename(imagepath, new_imagepath)
+            except Exception:
+                self._logger.error('could not move image')
+
+        def get_image_data():
+            # Get the image urls via the first item in the 
+            # result list that contains the image data.
+            images = []
+            release_id = 0
+            for i in range(self._ui.lst_nw.count()):
+                item_nw = self._ui.lst_nw.item(i)
+                if hasattr(item_nw, 'data'):
+                    images = item_nw.data.get('images')
+                    release_id = item_nw.data.get('id')
+                    break
+            self._logger.debug('getting image data for release: %s' % \
+                (str(release_id),))
+            return (release_id, images)
+
+        def download_images(images, release_id):
+            """Download all images to the temporary image directory and then 
+               move them to the renamed release directory.
+            """
             self._ui.btn_imgs.setEnabled(False)
             try:
                 for i, image in enumerate(images):
+
+                    # URI for the download..
                     uri = image.get('uri')
                     self._logger.debug('download ' + uri)
-                    filename = 'artwork_' + str(i + 1).zfill(2).lower()
-                    _, ext = os.path.splitext(uri)
-                    download_path = os.path.join(filepath, filename + str(ext))
-                    if not os.path.isdir(filepath):
-                        os.makedirs(filepath)
-                    self._run_worker(lambda: self._ui.btn_rnm.setEnabled(True)\
-                        , self._image_handler.get_file, download_path, uri)
+
+                    # Get the filename for the temporary storage.
+                    temp_img_dir = resource_path(os.path.join(TMP_IMG_DIR, \
+                        str(release_id)))
+                    filename = os.path.basename(uri)
+                    download_path = os.path.join(temp_img_dir, filename)
+                    # Name fot the new image passed to the image move function.
+                    _, ext = os.path.splitext(filename)
+                    imagename = 'artwork_' + str(i + 1).zfill(2).lower() + ext
+
+                    # Ensure the temporary download directory exists.
+                    if not os.path.isdir(temp_img_dir):
+                        os.makedirs(temp_img_dir)
+
+                    # Download the image in a worker thread.
+                    self._image_handler.get_file(download_path, uri)
+                    move_img(release_id, download_path, imagename)
+
             except Exception:
                 self._logger.error(traceback.format_exc())
-            self._ui.btn_imgs.setEnabled(True)
-
-        filepath, item = '', None
-
-        # Get path from the release item in local list.
-        for i in range(self._ui.lst_ld.count()):
-            item_ld = self._ui.lst_ld.item(i)
-            if getattr(item_ld, 'type') == 'release':
-                filepath = item_ld.url
-
-        if not filepath:
-            return
-
-        # Get the image urls via the first item in the 
-        # result list that contains the image data.
-        for i in range(self._ui.lst_nw.count()):
-            item_nw = self._ui.lst_nw.item(i)
-            if hasattr(item_nw, 'data'):
-                item = item_nw
-                break
-
-        if not item:
-            return
 
         # disable the rename button during image download process.
-        self._ui.btn_rnm.setEnabled(False)
+        #self._ui.btn_rnm.setEnabled(False)
 
-        images = item.data.get('images') or []
-        get_files(images)
+        release_id, img_data = get_image_data()
+        self._set_img_download_path(release_id)
+        self._run_worker(lambda: self._ui.btn_imgs.setEnabled(True), \
+            download_images, img_data, release_id)
 
     def _toggle_search_buttons(self):
         """Toggle the button.

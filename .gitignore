@@ -4,6 +4,7 @@
 /__pycache__
 /test
 /thumbs/*
+/images/*
 /log/*
 auth.py
 
