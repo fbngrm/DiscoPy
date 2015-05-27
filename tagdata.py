@@ -1913,19 +1913,23 @@ class TagData(object):
         return TYPES[self.type]
 
 if __name__ == '__main__':
-    f = TagData('06 - dopplereffekts - satellites.mp3')
-    f.comments = 'tagged with discopy'
+    """
+    f = TagData('./test/t/02.mp3')
+    with open(os.path.join('./test/t/01.jpg'), 'rb') as i:
+        img_data = i.read()
+
+
+    image = Image(img_data, type=ImageType.front)
+
+    if image.mime_type not in ('image/jpeg', 'image/png'):
+        print('not embedding image of unsupported type: {}', image.mime_type)
+
+    f.art = image
+    f.images =  []
+
     f.save()
-    print(f)
-    print(f.title)
-    print(f.artist)
-    print(f.album)
-    print(f.genre)
-    print(f.comments)
-    print(f.label)
-    print(f.track)
-    print(f.images)
+
     print (f.__dict__)
     from pprint import pprint
     pprint (dir(f))
-    print (type(f.images))
+    """

@@ -253,8 +253,10 @@ class DiscoPy(QtGui.QMainWindow):
         release_data = {}
         release_data['title'] = getattr(discogs_data, 'title') or 'Unknown' \
             if hasattr(discogs_data, 'title') else 'Unknown'
+
         release_data['year'] = str(getattr(discogs_data, 'year') or 'Unknown') \
             if hasattr(discogs_data, 'year') else 'Unknown'
+
         release_data['country'] = getattr(discogs_data, 'country') or \
             'Unknown' if hasattr(discogs_data, 'country') else 'Unknown'
 
@@ -296,6 +298,10 @@ class DiscoPy(QtGui.QMainWindow):
         if hasattr(discogs_data, 'tracklist'):
             for track in discogs_data.tracklist:
                 track_data = {}
+                from pprint import pprint
+                pprint(track)
+                pprint(dir(track))
+                pprint(track.__dict__)
                 track_data['title'] = track.title if hasattr(track, 'title') else 'Unknown Title'
                 track_data['index'] = str(track.position) if hasattr(track, 'position') else ''
                 # Build track name.
@@ -521,10 +527,8 @@ class DiscoPy(QtGui.QMainWindow):
                 _, ext = os.path.splitext(url)
                 new_filename = new_filename + ext
 
-            new_url = url.replace(filename, new_filename)
-
             data['url'] = url
-            data['new_url'] = new_url
+            data['new_url'] = os.path.join(os.path.dirname(url), new_filename)
             data['new_filename'] = new_filename
             data['item'] = item
 
@@ -537,27 +541,23 @@ class DiscoPy(QtGui.QMainWindow):
             # release directory.
             data = get_data(item, new_item)
 
-            rename = True
-
             if data['url'] == data['new_url']:
                 self._logger.warn('skipping: old filename equals new filename')
-                rename = False
+                return
             if not os.path.exists(data['url']):
                 self._logger.warn('file does not exists: %s' % data['url'])
-                rename = False
+                return
             if isfile_casesensitive(data['new_url']):
                 self._logger.warn('file already exists')
-                rename = False
+                return
 
-            if rename:
-                self._logger.debug('rename file from: %s to: %s' % (data['url'], data['new_url']))
+            self._logger.debug('rename file from: %s to: %s' % (data['url'], data['new_url']))
 
-                # Rename the directory.
-                os.rename(data['url'], data['new_url'])
-                # Show the new filename in the QListWidgetItem.
-                data['item'].setText(data['new_filename'])
-                # Updtae the uri of the QListWidgetItem.
-                data['item'].url = data['new_url']
+            # Rename the directory.
+            os.rename(data['url'], data['new_url'])
+            # Show the new filename in the QListWidgetItem.
+            data['item'].setText(data['new_filename'])
+            data['item'].url = data['new_url']
 
         except Exception:
             self._logger.error(traceback.format_exc())
@@ -568,43 +568,48 @@ class DiscoPy(QtGui.QMainWindow):
            widgets as data source / model to get the pathes for
            the renamed files and the new filenames.
         """
+
+        def get_items(i): 
+            return self._ui.lst_ld.item(i),self._ui.lst_nw.item(i)
+
+        def update_dir_url(track_item, new_url):
+            old_url = os.path.dirname(track_item.url)
+
+            self._logger.debug('updating track url: %s to %s' % \
+                (old_url, new_url))
+            track_item.url = track_item.url.replace(old_url, new_url)
+
         self._logger.debug('start renaming')
 
-        old_dir_url, new_dir_url = '', ''
-        track_items = []
+        try:
+            indices = range(self._ui.lst_ld.count())
+            # Get a list of tuples of all elements of the local file listwidgetitems and the data listwidgetitems.
+            items = list(map(get_items, indices))
+            # Sort the item list to hold the release item as the last element.
+            items = sorted(items, key=lambda x: x[0].type, reverse=True)
 
-        for i in range(self._ui.lst_ld.count()):
+            # Rename track files and release directory.
+            for item in items:
+                self._rename_file(item[0], item[1])
 
-            try:
-                item = self._ui.lst_ld.item(i)
-                new_item = self._ui.lst_nw.item(i)
+            # Update the directory url of the tracks.
+            for track_item in items[:-1]:
+                update_dir_url(track_item[0], items[-1][0].url)
 
-                # Rename directory first.
-                if getattr(item, 'type') == 'release':
-                    self._logger.debug('rename directory')
-                    old_dir_url = item.url
-                    release_id = new_item.data.get('id')
-                    self._rename_file(item, new_item)
-                    self._set_img_download_path(release_id)
-                    new_dir_url = item.url
-                else:
-                    track_items.append((item, new_item))
-
-            except Exception:
-                self._logger.error(traceback.format_exc())
-
-        for track_item in track_items:
-            # Update the url of the track/file with the new directory name
-            # of the release directory.
-            track_item[0].url = track_item[0].url.replace(old_dir_url, new_dir_url)
-            self._logger.debug('rename track')
-            self._rename_file(track_item[0], track_item[1])
-
+        except Exception:
+            self._logger.error(traceback.format_exc())
 
     def _set_tags(self):
         """Set the meta tags in the audio files from the
            discogs data.
         """
+
+        def set_image():
+            img_data = None
+            with open(os.path.join(path_), 'rb') as f:
+                img_data = f.read()
+
+
         self._logger.debug('start setting tags')
 
         for i in range(self._ui.lst_ld.count()):
@@ -617,14 +622,16 @@ class DiscoPy(QtGui.QMainWindow):
 
                 data, track = item.data, item.track
 
+                map_empty = ['unknown', 'Unknown', 'UNKNOWN']
+
                 t = self._tagger(filepath)
                 t.artist = data.get('artist').lower() or 'unknown'
                 t.title = track.get('title').lower() or 'unknown'
                 t.album = data.get('title').lower() or 'unknown'
-                t.year = data.get('year') or None
+                t.year = data.get('year') if not data.get('year') in map_empty else None
                 t.genre = data.get('genres').lower() or 'unknown'
-                t.track = track.get('position') or None
-                t.comment = 'tagged with discopy'
+                t.track = track.get('index') if track.get('index') not in map_empty else None
+                t.comments = 'tagged with discopy'
                 t.country = data.get('country').lower() or 'unknown'
                 t.labels = data.get('label').lower() or 'unknown'
                 t.save()
@@ -840,7 +847,7 @@ if __name__ == "__main__":
     splashpath = resource_path(os.path.join(ICN_DIR, SPLSH_SCRN))
     splash = QtGui.QSplashScreen(QtGui.QPixmap(splashpath))
     splash.show()
-    while time() - start < 1:
+    while time() - start < 2:
         sleep(0.001)
         app.processEvents()
 
