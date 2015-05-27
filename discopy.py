@@ -53,10 +53,12 @@ TRCK_SNTX = "index track"
 
 
 def resource_path(relative):
-    return os.path.join(getattr(sys, '_MEIPASS', os.path.abspath(".")), relative)
+    return os.path.join(getattr(sys, '_MEIPASS',
+        os.path.abspath(".")), relative)
 cert_path = resource_path('cacert.pem')
 
-# Set `REQUESTS_CA_BUNDLE` path for `requests` module pem file if not in development mode.
+# Set `REQUESTS_CA_BUNDLE` path for `requests` module pem
+# file if not in development mode.
 if os.path.exists(cert_path):
     os.environ['REQUESTS_CA_BUNDLE'] = cert_path
 
@@ -78,14 +80,16 @@ class Worker(QtCore.QObject):
         self._logger.debug('call ' + self._function.__name__)
         data = self._function(*self._args, **self._kwargs)
         self._logger.debug('finished ' + self._function.__name__)
-        self._logger.debug('thread id of worker: ' + str(QtCore.QThread.currentThreadId()))
+        self._logger.debug('thread id of worker: ' +
+            str(QtCore.QThread.currentThreadId()))
         self.data_ready.emit(data)
         self.finished.emit()
 
 
 class DiscoPy(QtGui.QMainWindow):
 
-    def __init__(self, ui, client, name_builder, tagdata, image_handler, parent=None):
+    def __init__(self, ui, client, name_builder, tagdata,
+            image_handler, parent=None):
         QtGui.QWidget.__init__(self, parent)
 
         self._ui = ui
@@ -106,6 +110,9 @@ class DiscoPy(QtGui.QMainWindow):
         self._img_download_pathes = {}
         # Index for the thumb preview of artwork images.
         self._thumb_index = 0
+        # Index counter to convert alpha numeric track 
+        # indices to numeric indices.
+        self._track_index = 1
         # Animation to show download progress
         self._progress = None
         # Keep references to worker threads while threads are running
@@ -136,11 +143,13 @@ class DiscoPy(QtGui.QMainWindow):
         self._ui.lndt_rls.focus.connect(self._set_focus)
         self._ui.lndt_brcde.focus.connect(self._set_focus)
         self._ui.lst_ld.drop_finished.connect(self._init_drop_search)
-        self.connect(self._ui.lbl_cvr, QtCore.SIGNAL('clicked'), self._get_thumb)
+        self.connect(self._ui.lbl_cvr, QtCore.SIGNAL('clicked'),
+            self._get_thumb)
         # Init
         self._set_focus()
         # Initialize the progress animation
-        imagepath = os.path.abspath(os.path.join(os.path.dirname(__file__), 'icons', PRGRSS_ICN))
+        imagepath = os.path.abspath(os.path.join(os.path.dirname(__file__),
+            'icons', PRGRSS_ICN))
         self._progress = QtGui.QMovie(imagepath, QtCore.QByteArray(), self)
         self._progress.setCacheMode(QtGui.QMovie.CacheAll)
         self._progress.setSpeed(100)
@@ -168,8 +177,10 @@ class DiscoPy(QtGui.QMainWindow):
         """Skip forward or backward in the search results.
         """
         if len(self._discogs_data) >= 1:
-            self._discogs_data_index = (self._discogs_data_index + step) % (len(self._discogs_data))
-            self._logger.debug('skip results - step: %d - index: %d' % (step, self._discogs_data_index))
+            self._discogs_data_index = (self._discogs_data_index + step) % \
+                (len(self._discogs_data))
+            self._logger.debug('skip results - step: %d - index: %d' %
+                (step, self._discogs_data_index))
             # Disable the search buttons during search process.
             self._toggle_search_buttons()
             # Skip and parse the search results in a worker thread.
@@ -185,7 +196,8 @@ class DiscoPy(QtGui.QMainWindow):
         self._logger.debug('search for: ' + self._query)
         # Disable the search buttons during search process.
         self._toggle_search_buttons()
-        # Run the search in a worker thread. Show search results when the ´data_ready´ signal is emitted.
+        # Run the search in a worker thread. Show search results when
+        # the ´data_ready´ signal is emitted.
         self._run_worker(self._show_data, self._get_data)
 
     def _get_data(self):
@@ -209,7 +221,8 @@ class DiscoPy(QtGui.QMainWindow):
             # Search for a release by name.
             elif self._query_type == 'release':
                 self._logger.debug('search release by name: ' + self._query)
-                self._discogs_data = self._client.search(self._query, type='release')
+                self._discogs_data = self._client.search(self._query,
+                    type='release')
             # Search for a release by barcode.
             elif self._query_type == 'barcode':
                 self._logger.debug('get release by barcode: ' + self._query)
@@ -234,7 +247,8 @@ class DiscoPy(QtGui.QMainWindow):
         # Set id of the currently displayed release.
         self._parsed_data_id = discogs_data.id
 
-        self._logger.debug('parse data for release id: %s' % (str(self._parsed_data_id)))
+        self._logger.debug('parse data for release id: %s' %
+            (str(self._parsed_data_id)))
 
         # Reset the thumb index for artwork preview.
         self._thumb_index = 0
@@ -243,7 +257,9 @@ class DiscoPy(QtGui.QMainWindow):
         if self._parsed_data_id in self._parsed_data.keys():
             return
         else:
-            self._parsed_data[self._parsed_data_id] = {'tracks': {}, 'release': {}}
+            self._parsed_data[self._parsed_data_id] = {
+                'tracks': {},
+                'release': {}}
 
         # Get the syntax to build the release and track names.
         t_syntax = unicode(self._ui.lndt_t_sntx.text())
@@ -260,23 +276,24 @@ class DiscoPy(QtGui.QMainWindow):
         release_data['country'] = getattr(discogs_data, 'country') or \
             'Unknown' if hasattr(discogs_data, 'country') else 'Unknown'
 
-        release_data['genres'] = ' ,'.join(genre for genre in \
+        release_data['genres'] = ' ,'.join(genre for genre in
             getattr(discogs_data, 'genres') or ['Unknown']) \
             if hasattr(discogs_data, 'genres') else 'Unknown'
 
-        #release_data['artist'] = getattr(discogs_data.artists[0], 'name')
-        # or 'Unknown' if hasattr(discogs_data, 'artists') else 'Unknown'
+        # release_data['artist'] = getattr(discogs_data.artists[0],
+        # 'name') or 'Unknown' if hasattr(discogs_data, 'artists')
+        # else 'Unknown'
 
-        release_data['artist'] = ' ,'.join(getattr(artist, 'name') \
-            for artist in getattr(discogs_data, 'artists') \
+        release_data['artist'] = ' ,'.join(getattr(artist, 'name')
+            for artist in getattr(discogs_data, 'artists')
             or ['Unknown']) if hasattr(discogs_data, 'artists') \
             else 'Unknown'
 
-        #release_data['label'] = getattr(discogs_data.labels[0], 'name')
+        # release_data['label'] = getattr(discogs_data.labels[0], 'name')
         # if hasattr(discogs_data, 'labels') else 'Unknown'
 
-        release_data['label'] = ' ,'.join(getattr(label, 'name') \
-            for label in getattr(discogs_data, 'labels') \
+        release_data['label'] = ' ,'.join(getattr(label, 'name')
+            for label in getattr(discogs_data, 'labels')
             or ['Unknown']) if hasattr(discogs_data, 'labels') \
             else 'Unknown'
 
@@ -287,7 +304,7 @@ class DiscoPy(QtGui.QMainWindow):
             if hasattr(discogs_data, 'id') else 'Unknown ID'
 
         # Build release name.
-        release_name = self._name_builder.build_name(\
+        release_name = self._name_builder.build_name(
             d_syntax, release_data, None)
         release_data['name'] = release_name
 
@@ -298,24 +315,25 @@ class DiscoPy(QtGui.QMainWindow):
         if hasattr(discogs_data, 'tracklist'):
             for track in discogs_data.tracklist:
                 track_data = {}
-                from pprint import pprint
-                pprint(track)
-                pprint(dir(track))
-                pprint(track.__dict__)
-                track_data['title'] = track.title if hasattr(track, 'title') else 'Unknown Title'
-                track_data['index'] = str(track.position) if hasattr(track, 'position') else ''
+                track_data['title'] = track.title \
+                    if hasattr(track, 'title') else 'Unknown Title'
+                track_data['index'] = str(track.position) \
+                    if hasattr(track, 'position') else ''
                 # Build track name.
-                track_name = self._name_builder.build_name(t_syntax, release_data, track_data)
+                track_name = self._name_builder.build_name(
+                    t_syntax, release_data, track_data)
                 track_data['name'] = track_name
                 # Store the track data.
-                self._parsed_data[self._parsed_data_id]['tracks'][track_name] = track_data
+                id_ = self._parsed_data_id
+                self._parsed_data[id_]['tracks'][track_name] = track_data
         self._logger.debug('parsing finished')
 
     def _show_data(self):
         """Initialize the search list widget with the parsed data
            from the discogs search results.
         """
-        self._logger.debug('show data fior release id: %s' % (str(self._parsed_data_id)))
+        self._logger.debug('show data fior release id: %s' %
+            (str(self._parsed_data_id)))
 
         # Get data for the current release.
         try:
@@ -332,12 +350,13 @@ class DiscoPy(QtGui.QMainWindow):
         # Set list widgets for all tracks in the parsed data.
         for track in release_data['tracks'].values():
             release_data['track'] = track
-            self._ui.lst_nw.data_dropped(track['name'], "track", meta=release_data, editable=True)
+            self._ui.lst_nw.data_dropped(track['name'], "track",
+                meta=release_data, editable=True)
 
         self._ui.lst_nw.sortItems(QtCore.Qt.AscendingOrder)
 
         # Set list widget for the release.
-        self._ui.lst_nw.data_dropped(release_data['release']['name'], \
+        self._ui.lst_nw.data_dropped(release_data['release']['name'],
             "release", meta=release_data, editable=True)
 
         # Color the list widget background alternatingly.
@@ -365,7 +384,8 @@ class DiscoPy(QtGui.QMainWindow):
         self._logger.debug('parse url: ' + unicode(url))
         search = re.search('(master|release){1}/{1}(\d*)', url, re.UNICODE)
         if search:
-            self._logger.debug('type: %s - id: %s' % (search.group(1), str(search.group(2))))
+            self._logger.debug('type: %s - id: %s' % (search.group(1),
+                str(search.group(2))))
             return (search.group(1), search.group(2))
         else:
             self._logger.debug('type: None, id: None')
@@ -379,7 +399,8 @@ class DiscoPy(QtGui.QMainWindow):
             # Get data for the current release.
             release_data = self._parsed_data[self._parsed_data_id]['release']
 
-            self._logger.debug('get thumb for release id: ' + str(release_data['id']))
+            self._logger.debug('get thumb for release id: ' +
+                str(release_data['id']))
             label = self._ui.lbl_cvr
             uri150 = release_data['images'][self._thumb_index]['uri150']
             imagename = uri150.split('/')[-1]
@@ -389,12 +410,13 @@ class DiscoPy(QtGui.QMainWindow):
             imagepath = os.path.join(imagedir, imagename)
             # Download preview image in a worker thread if it does not exist.
             if not os.path.isfile(imagepath):
-                self._run_worker(lambda: self._show_thumb(label, imagepath), \
+                self._run_worker(lambda: self._show_thumb(label, imagepath),
                     self._image_handler.get_file, imagepath, uri150)
             else:
                 self._show_thumb(label, imagepath)
 
-            self.disconnect(self._ui.lbl_cvr, QtCore.SIGNAL('clicked'), self._get_thumb)
+            self.disconnect(self._ui.lbl_cvr, QtCore.SIGNAL('clicked'),
+                self._get_thumb)
 
         except Exception:
             self._logger.error(traceback.format_exc())
@@ -405,7 +427,8 @@ class DiscoPy(QtGui.QMainWindow):
         """
         self._logger.debug('show thumb')
 
-        images = self._parsed_data[self._parsed_data_id]['release'].get('images') or []
+        images = self._parsed_data[self._parsed_data_id]['release'].get(
+            'images') or []
 
         if not os.path.isfile(imagepath):
             return
@@ -414,7 +437,8 @@ class DiscoPy(QtGui.QMainWindow):
             label.setPixmap(QtGui.QPixmap(imagepath))
             self._thumb_index = (self._thumb_index + 1) % len(images)
 
-        self.connect(self._ui.lbl_cvr, QtCore.SIGNAL('clicked'), self._get_thumb)
+        self.connect(self._ui.lbl_cvr, QtCore.SIGNAL('clicked'),
+            self._get_thumb)
 
     def _update_list(self):
         """Update the list widget when syntax changes are
@@ -442,7 +466,8 @@ class DiscoPy(QtGui.QMainWindow):
             # Update the track widgets.
             if item.type == "track":
                 syntax = unicode(self._ui.lndt_t_sntx.text())
-                new_txt = self._name_builder.build_name(syntax, item.data, item.track)
+                new_txt = self._name_builder.build_name(syntax,
+                    item.data, item.track)
                 item.setText(new_txt)
         self._logger.debug('finished updating list')
 
@@ -456,7 +481,8 @@ class DiscoPy(QtGui.QMainWindow):
         @param kwargs: argument dictionary passed to ´function´.
         """
 
-        self._logger.debug('thread id: ' + str(QtCore.QThread.currentThreadId()))
+        self._logger.debug('thread id: ' + str(
+            QtCore.QThread.currentThreadId()))
         self._ui.lbl_prgrss.show()
         self._progress.start()
         # No parent!
@@ -466,11 +492,13 @@ class DiscoPy(QtGui.QMainWindow):
         self._logger.debug('threads in pool ' + str(len(self._thread_pool)))
         # No parent!
         worker = Worker(function, *args, **kwargs)
-        # Need to keep a reference to the worker while it is living inside the worker thread.
+        # Need to keep a reference to the worker while it is living
+        # inside the worker thread.
         self._worker_pool.append(worker)
         self._logger.debug('worker in pool ' + str(len(self._worker_pool)))
 
-        # Call ´_show_data´ when the seach objects ´data_ready´ signal is emitted.
+        # Call ´_show_data´ when the seach objects ´data_ready´
+        # signal is emitted.
         if slot:
             worker.data_ready.connect(slot)
         # Move the search object in it's own thread.
@@ -502,11 +530,13 @@ class DiscoPy(QtGui.QMainWindow):
         """
 
         if not new_item or not item:
-            self._logger.debug('skipping: item: %s - new item: %s' % (str(item), str(new_item)))
+            self._logger.debug('skipping: item: %s - new item: %s' %
+                (str(item), str(new_item)))
             return
 
         def isfile_casesensitive(path):
-            if not os.path.isfile(path): return False   # exit early
+            if not os.path.isfile(path):
+                return False
             directory, filename = os.path.split(path)
             return filename in os.listdir(directory)
 
@@ -517,12 +547,14 @@ class DiscoPy(QtGui.QMainWindow):
             data = {}
 
             filename = unicode(item.text())
-            new_filename = unicode(new_item.text())
+            new_filename = "".join(c for c in unicode(new_item.text())
+                if c not in r'*?"<>|')
             url = item.url
 
             self._logger.debug('getting data for: %s' % unicode(item.text()))
 
-            # Append the file extension to the new url if tht file is not a directory.
+            # Append the file extension to the new url if tht file
+            # is not a directory.
             if os.path.isfile(url):
                 _, ext = os.path.splitext(url)
                 new_filename = new_filename + ext
@@ -551,7 +583,8 @@ class DiscoPy(QtGui.QMainWindow):
                 self._logger.warn('file already exists')
                 return
 
-            self._logger.debug('rename file from: %s to: %s' % (data['url'], data['new_url']))
+            self._logger.debug('rename file from: %s to: %s' %
+                (data['url'], data['new_url']))
 
             # Rename the directory.
             os.rename(data['url'], data['new_url'])
@@ -569,13 +602,13 @@ class DiscoPy(QtGui.QMainWindow):
            the renamed files and the new filenames.
         """
 
-        def get_items(i): 
-            return self._ui.lst_ld.item(i),self._ui.lst_nw.item(i)
+        def get_items(i):
+            return self._ui.lst_ld.item(i), self._ui.lst_nw.item(i)
 
         def update_dir_url(track_item, new_url):
             old_url = os.path.dirname(track_item.url)
 
-            self._logger.debug('updating track url: %s to %s' % \
+            self._logger.debug('updating track url: %s to %s' %
                 (old_url, new_url))
             track_item.url = track_item.url.replace(old_url, new_url)
 
@@ -583,7 +616,8 @@ class DiscoPy(QtGui.QMainWindow):
 
         try:
             indices = range(self._ui.lst_ld.count())
-            # Get a list of tuples of all elements of the local file listwidgetitems and the data listwidgetitems.
+            # Get a list of tuples of all elements of the local file
+            # listwidgetitems and the data listwidgetitems.
             items = list(map(get_items, indices))
             # Sort the item list to hold the release item as the last element.
             items = sorted(items, key=lambda x: x[0].type, reverse=True)
@@ -609,13 +643,12 @@ class DiscoPy(QtGui.QMainWindow):
             with open(os.path.join(path_), 'rb') as f:
                 img_data = f.read()
 
-
         self._logger.debug('start setting tags')
 
         for i in range(self._ui.lst_ld.count()):
             try:
                 item = self._ui.lst_nw.item(i)
-                if getattr(item, 'type') == 'release':
+                if not item or getattr(item, 'type') == 'release':
                     continue
                 filepath = self._ui.lst_ld.item(i).url
                 self._logger.debug('set tags for: ' + item.text())
@@ -628,17 +661,25 @@ class DiscoPy(QtGui.QMainWindow):
                 t.artist = data.get('artist').lower() or 'unknown'
                 t.title = track.get('title').lower() or 'unknown'
                 t.album = data.get('title').lower() or 'unknown'
-                t.year = data.get('year') if not data.get('year') in map_empty else None
+                t.year = data.get('year') if not data.get('year') \
+                    in map_empty else None
                 t.genre = data.get('genres').lower() or 'unknown'
-                t.track = track.get('index') if track.get('index') not in map_empty else None
+                try:
+                    t.track = int(track.get('index'))
+                except:
+                    t.track = self._track_index
                 t.comments = 'tagged with discopy'
                 t.country = data.get('country').lower() or 'unknown'
                 t.labels = data.get('label').lower() or 'unknown'
                 t.save()
+                self._track_index += 1
 
             except Exception:
                 self._logger.error(traceback.format_exc())
-            self._logger.debug('finished setting tags')
+                self._track_index = 1
+            
+        self._logger.debug('finished setting tags')
+        self._track_index = 0
 
     def _get_tags(self):
         """Set the meta tags in the audio files from the
@@ -667,7 +708,7 @@ class DiscoPy(QtGui.QMainWindow):
             if getattr(item_ld, 'type') == 'release':
                 path_ = item_ld.url
         self._img_download_pathes[release_id] = path_
-        self._logger.debug('set image download path for release: %s to: %s' \
+        self._logger.debug('set image download path for release: %s to: %s'
             % (str(release_id), path_))
 
     def _get_images(self):
@@ -681,7 +722,7 @@ class DiscoPy(QtGui.QMainWindow):
             """
             newdir = self._img_download_pathes.get(release_id) or 'none'
             new_imagepath = os.path.join(newdir, new_filename)
-            self._logger.debug('moving image: %s to: %s' % \
+            self._logger.debug('moving image: %s to: %s' %
                 (imagepath, new_imagepath))
             # Move the image to the potentially renamed directory.
             try:
@@ -700,7 +741,7 @@ class DiscoPy(QtGui.QMainWindow):
                     images = item_nw.data.get('images')
                     release_id = item_nw.data.get('id')
                     break
-            self._logger.debug('getting image data for release: %s' % \
+            self._logger.debug('getting image data for release: %s' %
                 (str(release_id),))
             return (release_id, images)
 
@@ -717,7 +758,7 @@ class DiscoPy(QtGui.QMainWindow):
                     self._logger.debug('download ' + uri)
 
                     # Get the filename for the temporary storage.
-                    temp_img_dir = resource_path(os.path.join(TMP_IMG_DIR, \
+                    temp_img_dir = resource_path(os.path.join(TMP_IMG_DIR,
                         str(release_id)))
                     filename = os.path.basename(uri)
                     download_path = os.path.join(temp_img_dir, filename)
@@ -737,11 +778,11 @@ class DiscoPy(QtGui.QMainWindow):
                 self._logger.error(traceback.format_exc())
 
         # disable the rename button during image download process.
-        #self._ui.btn_rnm.setEnabled(False)
+        # self._ui.btn_rnm.setEnabled(False)
 
         release_id, img_data = get_image_data()
         self._set_img_download_path(release_id)
-        self._run_worker(lambda: self._ui.btn_imgs.setEnabled(True), \
+        self._run_worker(lambda: self._ui.btn_imgs.setEnabled(True),
             download_images, img_data, release_id)
 
     def _toggle_search_buttons(self):
@@ -775,7 +816,8 @@ class DiscoPy(QtGui.QMainWindow):
         self._ui.lndt_rls.setStyleSheet("color: rgb(200, 200, 200);")
         self._ui.lndt_brcde.setStyleSheet("color: rgb(200, 200, 200);")
         if qlineedit:
-            qlineedit.setStyleSheet("color: rgb(0, 0, 0); background: rgb(255,255,255);")
+            qlineedit.setStyleSheet("color: rgb(0, 0, 0); \
+                background: rgb(255,255,255);")
 
     def _check_network(self):
         """Check if a network connection is available.
@@ -797,7 +839,8 @@ class DiscoPy(QtGui.QMainWindow):
         self._logger.debug('save_syntax')
         release_syntax = unicode(self._ui.lndt_f_sntx.text())
         track_syntax = unicode(self._ui.lndt_t_sntx.text())
-        syntax = {'track_syntax': track_syntax, 'release_syntax': release_syntax}
+        syntax = {'track_syntax': track_syntax,
+            'release_syntax': release_syntax}
 
         path_ = resource_path(os.path.join(STNGS, SNTX_STNGS))
         with open(path_, 'w') as outfile:
@@ -833,7 +876,7 @@ if __name__ == "__main__":
     file_log_handler = logging.FileHandler(log_file)
     logger.addHandler(file_log_handler)
     stderr_log_handler = logging.StreamHandler()
-    bash_formatter = logging.Formatter(fmt='%(threadName)s | ' \
+    bash_formatter = logging.Formatter(fmt='%(threadName)s | '
                 '%(filename)s: %(lineno)d | %(levelname)s: %(message)s')
     stderr_log_handler.setFormatter(bash_formatter)
     logger.addHandler(stderr_log_handler)
@@ -851,14 +894,14 @@ if __name__ == "__main__":
         sleep(0.001)
         app.processEvents()
 
-    win = DiscoPy(Ui_MainWindow(), Client('discopy/0.1', CONSUMER_KEY, \
+    win = DiscoPy(Ui_MainWindow(), Client('discopy/0.1', CONSUMER_KEY,
         CONSUMER_SECRET, TOKEN, SECRET), NameBuilder(), TagData, ImageHandler())
     win.setWindowIcon(QtGui.QIcon(iconpath))
     splash.finish(win)
 
-    #import ctypes
-    #appid = 'discopy.0.1'
-    #ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(appid)
+    # import ctypes
+    # appid = 'discopy.0.1'
+    # ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(appid)
 
     win.center()
     win.show()
