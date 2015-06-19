@@ -19,11 +19,10 @@ class NameBuilder(object):
     def build_name(self, syntax, release_data, track_data):
         """Build a filename by substituting syntax keywords by it's equivalents from the provided data. Ensure the filename does not contain directory seperator characters.
         """
-
         options = {
-            'artist': release_data['artist'].lower(),
-            'Artist': self._capitalize(release_data['artist']),
-            'ARTIST': release_data['artist'].upper(),
+            'artist': track_data['artist'].lower() if track_data else release_data['artist'].lower(),
+            'Artist': self._capitalize(track_data['artist']) if track_data else self._capitalize(release_data['artist']),
+            'ARTIST': track_data['artist'].upper() if track_data else release_data['artist'].upper(),
             'release': release_data['title'].lower(),
             'Release': self._capitalize(release_data['title']),
             'RELEASE': release_data['title'].upper(),
@@ -40,8 +39,8 @@ class NameBuilder(object):
             'Year': release_data['year'],
             'YEAR': release_data['year'],
             'index': track_data['index'].zfill(2).lower() if track_data else '',
-            'Index': track_data['index'].zfill(2).upper()if track_data else '',
-            'INDEX': track_data['index'].zfill(2).upper()if track_data else '',
+            'Index': track_data['index'].zfill(2).upper() if track_data else '',
+            'INDEX': track_data['index'].zfill(2).upper() if track_data else '',
             'track': track_data['title'].lower() if track_data else '',
             'Track': self._capitalize(track_data['title']) if track_data else '',
             'TRACK': track_data['title'].upper() if track_data else ''

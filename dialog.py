@@ -88,7 +88,7 @@ class DNDListWidget(QtGui.QListWidget):
                     files = [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
                     for file_ in files:
                         name, ext = os.path.splitext(file_)
-                        if ext not in SPPRTD:
+                        if ext.lower() not in SPPRTD:
                             continue
                         links.append(file_)
                     links.append(path)
@@ -108,7 +108,7 @@ class DNDListWidget(QtGui.QListWidget):
             track_data = []
             for file_ in data:
                 name, ext = os.path.splitext(file_)
-                if ext in SPPRTD:
+                if ext.lower() in SPPRTD:
                     track_data.append(file_)
                 else:
                     release_data = file_

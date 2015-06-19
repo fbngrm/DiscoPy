@@ -276,7 +276,7 @@ class DiscoPy(QtGui.QMainWindow):
         release_data['country'] = getattr(discogs_data, 'country') or \
             'Unknown' if hasattr(discogs_data, 'country') else 'Unknown'
 
-        release_data['genres'] = ' ,'.join(genre for genre in
+        release_data['genres'] = ', '.join(genre for genre in
             getattr(discogs_data, 'genres') or ['Unknown']) \
             if hasattr(discogs_data, 'genres') else 'Unknown'
 
@@ -284,18 +284,20 @@ class DiscoPy(QtGui.QMainWindow):
         # 'name') or 'Unknown' if hasattr(discogs_data, 'artists')
         # else 'Unknown'
 
-        release_data['artist'] = ' ,'.join(getattr(artist, 'name')
+        release_data['artist'] = ', '.join(getattr(artist, 'name')
             for artist in getattr(discogs_data, 'artists')
             or ['Unknown']) if hasattr(discogs_data, 'artists') \
             else 'Unknown'
+        release_data['artist'] = re.sub(r"\(\d+\)", "", release_data['artist'])
 
         # release_data['label'] = getattr(discogs_data.labels[0], 'name')
         # if hasattr(discogs_data, 'labels') else 'Unknown'
 
-        release_data['label'] = ' ,'.join(getattr(label, 'name')
+        release_data['label'] = ', '.join(getattr(label, 'name')
             for label in getattr(discogs_data, 'labels')
             or ['Unknown']) if hasattr(discogs_data, 'labels') \
             else 'Unknown'
+        release_data['label'] = re.sub(r"\(\d+\)", "", release_data['label'])
 
         release_data['images'] = getattr(discogs_data, 'images') \
             or [] if hasattr(discogs_data, 'images') else []
@@ -319,6 +321,11 @@ class DiscoPy(QtGui.QMainWindow):
                     if hasattr(track, 'title') else 'Unknown Title'
                 track_data['index'] = str(track.position) \
                     if hasattr(track, 'position') else ''
+                track_data['artist'] = ', '.join(getattr(artist, 'name')
+                    for artist in getattr(track, 'artists')
+                    or ['Unknown']) if hasattr(track, 'artists') \
+                    else 'Unknown'
+                track_data['artist'] = re.sub(r"\(\d+\)", "", track_data['artist'])
                 # Build track name.
                 track_name = self._name_builder.build_name(
                     t_syntax, release_data, track_data)
@@ -658,7 +665,8 @@ class DiscoPy(QtGui.QMainWindow):
                 map_empty = ['unknown', 'Unknown', 'UNKNOWN']
 
                 t = self._tagger(filepath)
-                t.artist = data.get('artist').lower() or 'unknown'
+                t.artist = track.get('artist').lower() or 'unknown'
+                t.albumartist = data.get('artist').lower() or 'unknown'
                 t.title = track.get('title').lower() or 'unknown'
                 t.album = data.get('title').lower() or 'unknown'
                 t.year = data.get('year') if not data.get('year') \
@@ -670,7 +678,7 @@ class DiscoPy(QtGui.QMainWindow):
                     t.track = self._track_index
                 t.comments = 'tagged with discopy'
                 t.country = data.get('country').lower() or 'unknown'
-                t.labels = data.get('label').lower() or 'unknown'
+                t.label = data.get('label').lower() or 'unknown'
                 t.save()
                 self._track_index += 1
 
