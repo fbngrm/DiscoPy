@@ -564,7 +564,7 @@ class DiscoPy(QtGui.QMainWindow):
             # is not a directory.
             if os.path.isfile(url):
                 _, ext = os.path.splitext(url)
-                new_filename = new_filename + ext
+                new_filename = new_filename + ext.lower()
 
             data['url'] = url
             data['new_url'] = os.path.join(os.path.dirname(url), new_filename)
