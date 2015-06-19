@@ -115,7 +115,7 @@ class DiscoPy(QtGui.QMainWindow):
         self._track_index = 1
         # Animation to show download progress
         self._progress = None
-        # Keep references to worker threads while threads are running
+        # Keep references to worker threads while they are running
         self._thread_pool = []
         # Refereances to worker objects
         self._worker_pool = []
@@ -269,6 +269,7 @@ class DiscoPy(QtGui.QMainWindow):
         release_data = {}
         release_data['title'] = getattr(discogs_data, 'title') or 'Unknown' \
             if hasattr(discogs_data, 'title') else 'Unknown'
+        release_data['title'] = re.sub(r"\(\d+\)", "", release_data['title'])
 
         release_data['year'] = str(getattr(discogs_data, 'year') or 'Unknown') \
             if hasattr(discogs_data, 'year') else 'Unknown'
@@ -286,8 +287,8 @@ class DiscoPy(QtGui.QMainWindow):
 
         release_data['artist'] = ', '.join(getattr(artist, 'name')
             for artist in getattr(discogs_data, 'artists')
-            or ['Unknown']) if hasattr(discogs_data, 'artists') \
-            else 'Unknown'
+            or []) if hasattr(discogs_data, 'artists') and \
+            len(discogs_data.artists) else 'Unknown'
         release_data['artist'] = re.sub(r"\(\d+\)", "", release_data['artist'])
 
         # release_data['label'] = getattr(discogs_data.labels[0], 'name')
@@ -295,8 +296,8 @@ class DiscoPy(QtGui.QMainWindow):
 
         release_data['label'] = ', '.join(getattr(label, 'name')
             for label in getattr(discogs_data, 'labels')
-            or ['Unknown']) if hasattr(discogs_data, 'labels') \
-            else 'Unknown'
+            or []) if hasattr(discogs_data, 'labels') \
+            and len(discogs_data.labels) else 'Unknown'
         release_data['label'] = re.sub(r"\(\d+\)", "", release_data['label'])
 
         release_data['images'] = getattr(discogs_data, 'images') \
@@ -321,10 +322,10 @@ class DiscoPy(QtGui.QMainWindow):
                     if hasattr(track, 'title') else 'Unknown Title'
                 track_data['index'] = str(track.position) \
                     if hasattr(track, 'position') else ''
-                track_data['artist'] = ', '.join(getattr(artist, 'name')
+                track_data['artist'] = ', '.join(getattr(artist, 'name') 
                     for artist in getattr(track, 'artists')
-                    or ['Unknown']) if hasattr(track, 'artists') \
-                    else 'Unknown'
+                    or []) if hasattr(track, 'artists') and len(track.artists) \
+                    else release_data['artist']
                 track_data['artist'] = re.sub(r"\(\d+\)", "", track_data['artist'])
                 # Build track name.
                 track_name = self._name_builder.build_name(
@@ -350,7 +351,6 @@ class DiscoPy(QtGui.QMainWindow):
             # Enable the search buttons.
             self._toggle_search_buttons()
             return
-
         # Clear list first.
         self._ui.lst_nw.clear()
 
@@ -504,7 +504,7 @@ class DiscoPy(QtGui.QMainWindow):
         self._worker_pool.append(worker)
         self._logger.debug('worker in pool ' + str(len(self._worker_pool)))
 
-        # Call ´_show_data´ when the seach objects ´data_ready´
+        # Call ´_show_data´ when the search objects ´data_ready´
         # signal is emitted.
         if slot:
             worker.data_ready.connect(slot)
