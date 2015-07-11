@@ -49,8 +49,8 @@ class NameBuilder(object):
         for option in options.keys():
             if option in syntax:
                 syntax = syntax.replace(option, options[option]).strip()
-
-        return re.sub('[\\\/]+', '-', syntax)
+        name = re.sub('[\\\/]+', '-', syntax)
+        return re.sub('[\*\.\^\$\?\|]+','',name).strip()
 
     def _capitalize(self, s):
         res = ''

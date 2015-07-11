@@ -31,6 +31,7 @@ from tagdata import TagData
 from imageloader import ImageHandler
 from discogs_client import Client
 from os.path import expanduser
+from operator import itemgetter
 import urllib2
 
 try:
@@ -101,11 +102,15 @@ class DiscoPy(QtGui.QMainWindow):
         self._image_handler = image_handler
         self._query = ""
         self._query_type = ""
-        # Discogs api response obejects
+        # Discogs api response objects
         self._discogs_data = []
         self._discogs_data_index = 0
         # Simple model for the parsed discogs data.
         self._parsed_data = {}
+        self._parsed_data[0] = {'release':
+                                {'name':'No results found.'},
+                                'tracks':{}
+                                }
         self._parsed_data_id = 0
         self._img_download_pathes = {}
         # Index for the thumb preview of artwork images.
@@ -228,12 +233,23 @@ class DiscoPy(QtGui.QMainWindow):
                 self._logger.debug('get release by barcode: ' + self._query)
                 self._discogs_data = self._client.search(barcode=self._query)
 
-            # Parse the data returned by discogs api.
+            # Parse the data returned by discogs api or clear the 
+            # listwidget when no search results are received.
             if len(self._discogs_data):
                 self._parse_data()
+            else:
+                self._logger.warn('no search resuts received')
+                self._ui.lst_nw.clear()
+                self._parsed_data_id = 0
 
         except Exception:
             self._logger.error(traceback.format_exc())
+
+    def _convert_index(self, index):
+        if '-' in index:
+            parts = index.split('-')
+            index = '%s-%02d' % (''.join(parts[:-1]), int(parts[-1]),)
+        return index 
 
     def _parse_data(self):
         """Parse the discogs response to a simple data object. Since the
@@ -320,8 +336,9 @@ class DiscoPy(QtGui.QMainWindow):
                 track_data = {}
                 track_data['title'] = track.title \
                     if hasattr(track, 'title') else 'Unknown Title'
-                track_data['index'] = str(track.position) \
+                index = str(track.position) \
                     if hasattr(track, 'position') else ''
+                track_data['index'] = self._convert_index(index)
                 track_data['artist'] = ', '.join(getattr(artist, 'name') 
                     for artist in getattr(track, 'artists')
                     or []) if hasattr(track, 'artists') and len(track.artists) \
@@ -340,8 +357,9 @@ class DiscoPy(QtGui.QMainWindow):
         """Initialize the search list widget with the parsed data
            from the discogs search results.
         """
+
         self._logger.debug('show data fior release id: %s' %
-            (str(self._parsed_data_id)))
+                    (str(self._parsed_data_id)))
 
         # Get data for the current release.
         try:

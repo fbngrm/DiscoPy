@@ -35,12 +35,11 @@ SPPRTD = ['.mp3', '.aac', '.alac',
     '.aiff', '.opus', '.mp4',
     '.wav', '.flac', '.aif',
     '.mid', '.m4a', '.ape'
-        ]
+    ]
 ITM_TPS = {
     "release": "record_30px.png",
     "track": "track_30px.png"
 }
-
 
 class ClickableLabel(QtGui.QLabel):
 
