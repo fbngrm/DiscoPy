@@ -22,11 +22,13 @@ import os
 import sys
 import json
 import logging
-from time import time, sleep
 import traceback
+from time import time, sleep
 from PyQt4 import QtGui, QtCore
 from dialog import Ui_MainWindow
+from start_dialog import StartDialog
 from namebuilder import NameBuilder
+from settings_handler import SettingsHandler
 from tagdata import TagData
 from imageloader import ImageHandler
 from discogs_client import Client
@@ -47,8 +49,6 @@ ICN_DIR = 'icons'
 SPLSH_SCRN = 'discopy_800px.png'
 THMB_DIR = 'thumbs'
 TMP_IMG_DIR = 'images'
-STNGS = 'settings'
-SNTX_STNGS = 'syntax.json'
 RLS_SNTX = "artist - release [labels year]"
 TRCK_SNTX = "index track"
 
@@ -86,15 +86,33 @@ class Worker(QtCore.QObject):
         self.data_ready.emit(data)
         self.finished.emit()
 
+class InitDialog(object):
+    def __init__(self, settingsHandler):
+        # Init start dialog
+        self.settingsHandler = settingsHandler
+        self.dialog = QtGui.QDialog()
+        self.dialog.ui = StartDialog()
+        self.dialog.ui.setupUi(self.dialog)
+        self.dialog.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+
+        # Signals
+        self.dialog.ui.continueButton.clicked.connect(self._close)
+        self.dialog.exec_()
+
+    def _close(self):
+        settings_data = {'init_dialog':not self.dialog.ui.checkBox.isChecked()}
+        self.settingsHandler.data = settings_data
+        self.dialog.close()
 
 class DiscoPy(QtGui.QMainWindow):
 
-    def __init__(self, ui, client, name_builder, tagdata,
+    def __init__(self, ui, settingsHandler, client, name_builder, tagdata,
             image_handler, parent=None):
         QtGui.QWidget.__init__(self, parent)
 
         self._ui = ui
         self._ui.setupUi(self)
+        self.settingsHandler = settingsHandler
         self._name_builder = name_builder
         # Discogs api client
         self._client = client
@@ -169,6 +187,9 @@ class DiscoPy(QtGui.QMainWindow):
             self._query_type = 'release'
             self._ui.lndt_rls.setText(release_title)
             self._search()
+        else:
+            self._ui.lndt_rls.setStyleSheet("color: rgb(255, 0, 0);")
+            self._ui.lndt_rls.setText("Enter Query")
 
     def center(self):
         """Center the mainwindow when it is started.
@@ -721,7 +742,6 @@ class DiscoPy(QtGui.QMainWindow):
                 t = self._tagger(filepath)
                 if t.album:
                     return unicode(t.album).lower()
-
             except Exception:
                 self._logger.error(traceback.format_exc())
             self._logger.debug('finished getting tags')
@@ -867,21 +887,11 @@ class DiscoPy(QtGui.QMainWindow):
         track_syntax = unicode(self._ui.lndt_t_sntx.text())
         syntax = {'track_syntax': track_syntax,
             'release_syntax': release_syntax}
-
-        path_ = resource_path(os.path.join(STNGS, SNTX_STNGS))
-        with open(path_, 'w') as outfile:
-            json.dump(syntax, outfile)
+        self.settingsHandler.data = syntax
 
     def _set_syntax(self):
-        release_syntax = None
-        track_syntax = None
-
-        path_ = resource_path(os.path.join(STNGS, SNTX_STNGS))
-        with open(path_) as json_data:
-            data = json.load(json_data)
-            json_data.close()
-            release_syntax = data.get('release_syntax')
-            track_syntax = data.get('track_syntax')
+        release_syntax = settingsHandler.data.get('release_syntax')
+        track_syntax = settingsHandler.data.get('track_syntax')
 
         if release_syntax:
             self._ui.lndt_f_sntx.setText(unicode(release_syntax))
@@ -920,7 +930,8 @@ if __name__ == "__main__":
         sleep(0.001)
         app.processEvents()
 
-    win = DiscoPy(Ui_MainWindow(), Client('discopy/0.1', CONSUMER_KEY,
+    settingsHandler = SettingsHandler()
+    win = DiscoPy(Ui_MainWindow(), settingsHandler, Client('discopy/0.1', CONSUMER_KEY,
         CONSUMER_SECRET, TOKEN, SECRET), NameBuilder(), TagData, ImageHandler())
     win.setWindowIcon(QtGui.QIcon(iconpath))
     splash.finish(win)
@@ -931,4 +942,7 @@ if __name__ == "__main__":
 
     win.center()
     win.show()
+
+    if settingsHandler.data.get('init_dialog'):
+        InitDialog(settingsHandler)
     sys.exit(app.exec_())

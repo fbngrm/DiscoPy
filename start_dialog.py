@@ -1,0 +1,76 @@
+# -*- coding: utf-8 -*-
+
+# Form implementation generated from reading ui file '../../ui_files/discopy/howto.ui'
+#
+# Created by: PyQt4 UI code generator 4.11.4
+#
+# WARNING! All changes made in this file will be lost!
+
+from PyQt4 import QtCore, QtGui
+
+try:
+    _fromUtf8 = QtCore.QString.fromUtf8
+except AttributeError:
+    def _fromUtf8(s):
+        return s
+
+try:
+    _encoding = QtGui.QApplication.UnicodeUTF8
+    def _translate(context, text, disambig):
+        return QtGui.QApplication.translate(context, text, disambig, _encoding)
+except AttributeError:
+    def _translate(context, text, disambig):
+        return QtGui.QApplication.translate(context, text, disambig)
+
+class StartDialog(object):
+    def setupUi(self, Dialog):
+        Dialog.setObjectName(_fromUtf8("Dialog"))
+        Dialog.resize(834, 368)
+        self.gridLayoutWidget = QtGui.QWidget(Dialog)
+        self.gridLayoutWidget.setGeometry(QtCore.QRect(10, 10, 811, 341))
+        self.gridLayoutWidget.setObjectName(_fromUtf8("gridLayoutWidget"))
+        self.gridLayout = QtGui.QGridLayout(self.gridLayoutWidget)
+        self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
+        self.checkBox = QtGui.QCheckBox(self.gridLayoutWidget)
+        self.checkBox.setObjectName(_fromUtf8("checkBox"))
+        self.gridLayout.addWidget(self.checkBox, 1, 1, 1, 1)
+        self.continueButton = QtGui.QPushButton(self.gridLayoutWidget)
+        self.continueButton.setMinimumSize(QtCore.QSize(50, 30))
+        self.continueButton.setMaximumSize(QtCore.QSize(150, 30))
+        self.continueButton.setObjectName(_fromUtf8("continueButton"))
+        self.gridLayout.addWidget(self.continueButton, 1, 2, 1, 1)
+        self.textBrowser = QtGui.QTextBrowser(self.gridLayoutWidget)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(self.textBrowser.sizePolicy().hasHeightForWidth())
+        self.textBrowser.setSizePolicy(sizePolicy)
+        self.textBrowser.setMinimumSize(QtCore.QSize(0, 275))
+        self.textBrowser.setStyleSheet(_fromUtf8("background-color: transparent;"))
+        self.textBrowser.setFrameShadow(QtGui.QFrame.Plain)
+        self.textBrowser.setObjectName(_fromUtf8("textBrowser"))
+        self.gridLayout.addWidget(self.textBrowser, 0, 1, 1, 2)
+
+        self.retranslateUi(Dialog)
+        QtCore.QMetaObject.connectSlotsByName(Dialog)
+
+    def retranslateUi(self, Dialog):
+        Dialog.setWindowTitle(_translate("Dialog", "README", None))
+        self.checkBox.setText(_translate("Dialog", "Don\'t show again", None))
+        self.continueButton.setText(_translate("Dialog", "continue", None))
+        self.textBrowser.setHtml(_translate("Dialog", "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/REC-html40/strict.dtd\">\n"
+"<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/css\">\n"
+"p, li { white-space: pre-wrap; }\n"
+"</style></head><body style=\" font-family:\'Cantarell\'; font-size:12pt; font-weight:400; font-style:normal;\">\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-size:16pt; font-weight:600;\">How to rename files</span></p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px; font-size:16pt; font-weight:600;\"><br /></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">1. Drop your files to into the left table. </p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">2. Search by entering the <span style=\" font-weight:600;\">Release Name</span>, an <span style=\" font-weight:600;\">Discogs URL </span>or a <span style=\" font-weight:600;\">Barcode.</span> Press <span style=\" font-weight:600;\">Search.</span></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">3. Change the order of your result and file items or remove items by pressing delete. </p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">     Make sure the order of the result items corresponds to the order of your files!</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">4. Enter the syntax for your new filename.</p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\">5. Press the <span style=\" font-weight:600;\">Rename</span> button.</p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p>\n"
+"<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><span style=\" font-weight:600;\">IMPORTANT</span>: Every file in the left table will be renamed according to the corresponding row in the right table!</p>\n"
+"<p style=\"-qt-paragraph-type:empty; margin-top:0px; margin-bottom:0px; margin-left:0px; margin-right:0px; -qt-block-indent:0; text-indent:0px;\"><br /></p></body></html>", None))
+
