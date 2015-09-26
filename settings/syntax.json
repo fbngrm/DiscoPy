@@ -1,1 +1,1 @@
-{"init_dialog": true, "track_syntax": "index track", "release_syntax": "release [label year]"}
+{"init_dialog": false, "track_syntax": "index track", "release_syntax": "release [label year]"}

@@ -23,6 +23,7 @@ import sys
 import json
 import logging
 import traceback
+from shutil import move
 from time import time, sleep
 from PyQt4 import QtGui, QtCore
 from dialog import Ui_MainWindow
@@ -259,7 +260,7 @@ class DiscoPy(QtGui.QMainWindow):
             if len(self._discogs_data):
                 self._parse_data()
             else:
-                self._logger.warn('no search resuts received')
+                self._logger.warn('no search results received')
                 self._ui.lst_nw.clear()
                 self._parsed_data_id = 0
 
@@ -268,8 +269,11 @@ class DiscoPy(QtGui.QMainWindow):
 
     def _convert_index(self, index):
         if '-' in index:
-            parts = index.split('-')
-            index = '%s-%02d' % (''.join(parts[:-1]), int(parts[-1]),)
+            try:
+                parts = index.split('-')
+                index = '%s-%02d' % (''.join(parts[:-1]), int(parts[-1]),)
+            except:
+                pass
         return index 
 
     def _parse_data(self):
@@ -386,9 +390,9 @@ class DiscoPy(QtGui.QMainWindow):
         try:
             release_data = self._parsed_data[self._parsed_data_id]
         except Exception:
-            self._logger.error(traceback.format_exc())
             # Enable the search buttons.
             self._toggle_search_buttons()
+            self._logger.error(traceback.format_exc())
             return
         # Clear list first.
         self._ui.lst_nw.clear()
@@ -408,15 +412,15 @@ class DiscoPy(QtGui.QMainWindow):
         # Color the list widget background alternatingly.
         self._ui.lst_nw.color_items()
 
+        # Enable the search buttons.
+        self._toggle_search_buttons()
+
         # Initialize the info labels.
         self._ui.lbl_artst.setText(release_data['release']['artist'])
         self._ui.lbl_rls.setText(release_data['release']['title'])
         self._ui.lbl_lbl.setText(release_data['release']['label'])
         self._ui.lbl_yr.setText(release_data['release']['year'])
         self._ui.lbl_gnr.setText(release_data['release']['genres'])
-
-        # Enable the search buttons.
-        self._toggle_search_buttons()
 
         # Get the artwork preview.
         self._get_thumb()
@@ -772,9 +776,10 @@ class DiscoPy(QtGui.QMainWindow):
                 (imagepath, new_imagepath))
             # Move the image to the potentially renamed directory.
             try:
-                os.rename(imagepath, new_imagepath)
-            except Exception:
+                move(imagepath, new_imagepath)
+            except:
                 self._logger.error('could not move image')
+                self._logger.error(traceback.format_exc())
 
         def get_image_data():
             # Get the image urls via the first item in the
