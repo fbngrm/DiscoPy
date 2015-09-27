@@ -35,6 +35,7 @@ from imageloader import ImageHandler
 from discogs_client import Client
 from os.path import expanduser
 from operator import itemgetter
+from logging.handlers import RotatingFileHandler
 import urllib2
 
 try:
@@ -52,6 +53,7 @@ THMB_DIR = 'thumbs'
 TMP_IMG_DIR = 'images'
 RLS_SNTX = "artist - release [labels year]"
 TRCK_SNTX = "index track"
+MAX_LOG_SIZE = 100000
 
 
 def resource_path(relative):
@@ -914,8 +916,12 @@ if __name__ == "__main__":
         os.makedirs(logpath)
     log_file = os.path.join(logpath, 'discopy.log')
     logger = logging.getLogger('discopy.main')
-    file_log_handler = logging.FileHandler(log_file)
-    logger.addHandler(file_log_handler)
+    file_formatter = logging.Formatter(fmt='%(threadName)s | '
+                '%(filename)s: %(lineno)d | %(levelname)s: %(message)s')
+    file_handler = RotatingFileHandler(log_file, maxBytes=MAX_LOG_SIZE,  backupCount=3, encoding='UTF-8')
+    file_handler.setFormatter(file_formatter)
+    logger.addHandler(file_handler)
+
     stderr_log_handler = logging.StreamHandler()
     bash_formatter = logging.Formatter(fmt='%(threadName)s | '
                 '%(filename)s: %(lineno)d | %(levelname)s: %(message)s')
