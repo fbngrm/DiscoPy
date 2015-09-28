@@ -112,23 +112,23 @@ class Worker(QtCore.QObject):
         self.finished.emit()
 
 
-class StartDialog(object):
-    def __init__(self, settingsHandler):
+class StartDialog(QtGui.QDialog):
+    def __init__(self, settingsHandler, parent=None):
+        QtGui.QDialog.__init__(self, parent)
         # Init start dialog
         self.settingsHandler = settingsHandler
-        self.dialog = QtGui.QDialog()
-        self.dialog.ui = StartDialogUi()
-        self.dialog.ui.setupUi(self.dialog)
-        self.dialog.setAttribute(QtCore.Qt.WA_DeleteOnClose)
+        self.ui = StartDialogUi()
+        self.ui.setupUi(self)
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
         # Signals
-        self.dialog.ui.continueButton.clicked.connect(self._close)
-        self.dialog.exec_()
+        self.ui.continueButton.clicked.connect(self._close)
+        self.show()
 
     def _close(self):
-        settings_data = {'init_dialog': not self.dialog.ui.checkBox.isChecked()}
+        settings_data = {'init_dialog': not self.ui.checkBox.isChecked()}
         self.settingsHandler.data = settings_data
-        self.dialog.close()
+        self.close()
 
 
 class RenameDialog(QtGui.QDialog):
@@ -173,6 +173,9 @@ class DiscoPy(QtGui.QMainWindow):
                                 }
         self._parsed_data_id = 0
         self._img_download_pathes = {}
+        # Use to store tuples of all renamed files of a release to undo
+        # naming if required.
+        self._undo_list = []
         # Index for the thumb preview of artwork images.
         self._thumb_index = 0
         # Index counter to convert alpha numeric track
@@ -618,77 +621,6 @@ class DiscoPy(QtGui.QMainWindow):
         thread.start()
         self._logger.debug('thread started')
 
-    def _rename_file(self, item, new_item):
-        """Rename the release directory if it exists and no
-           other directory with the same name already exists.
-        """
-
-        if not new_item or not item:
-            self._logger.debug('skipping: item: %s - new item: %s' %
-                (str(item), str(new_item)))
-            return
-
-        def isfile_casesensitive(path):
-            if not os.path.isfile(path):
-                return False
-            directory, filename = os.path.split(path)
-            return filename in os.listdir(directory)
-
-        def get_data(item, new_item):
-            """Get the QListWidgetItem and the release information
-               for renaming the release directory.
-            """
-            data = {}
-
-            filename = unicode(item.text())
-            new_filename = "".join(c for c in unicode(new_item.text())
-                if c not in r'*?"<>|')
-            url = item.url
-
-            self._logger.debug('getting data for: %s' % unicode(item.text()))
-
-            # Append the file extension to the new url if tht file
-            # is not a directory.
-            if os.path.isfile(url):
-                _, ext = os.path.splitext(url)
-                new_filename = new_filename + ext.lower()
-
-            data['url'] = url
-            data['new_url'] = os.path.join(os.path.dirname(url), new_filename)
-            data['new_filename'] = new_filename
-            data['item'] = item
-
-            self._logger.debug('data: %s' % data)
-
-            return data
-
-        try:
-            # Dictionary containing the information to rename the
-            # release directory.
-            data = get_data(item, new_item)
-
-            if data['url'] == data['new_url']:
-                self._logger.warn('skipping: old filename equals new filename')
-                return
-            if not os.path.exists(data['url']):
-                self._logger.warn('file does not exists: %s' % data['url'])
-                return
-            if isfile_casesensitive(data['new_url']):
-                self._logger.warn('file already exists')
-                return
-
-            self._logger.debug('rename file from: %s to: %s' %
-                (data['url'], data['new_url']))
-
-            # Rename the directory.
-            os.rename(data['url'], data['new_url'])
-            # Show the new filename in the QListWidgetItem.
-            data['item'].setText(data['new_filename'])
-            data['item'].url = data['new_url']
-
-        except Exception:
-            self._logger.error(traceback.format_exc())
-
     def _show_rename_dialog(self):
 
         def close_rename_dialog(button):
@@ -696,7 +628,7 @@ class DiscoPy(QtGui.QMainWindow):
             if button == 0:
                 return
             elif button == 1:
-                self._rename()
+                self._rename_files()
 
         if self._settingsHandler.data.get('rename_dialog'):
             # Signals
@@ -704,43 +636,140 @@ class DiscoPy(QtGui.QMainWindow):
             self._rename_dialog.ui.renameButton.clicked.connect(lambda: close_rename_dialog(1))
             # Show dialog
             self._rename_dialog.show()
+        else:
+            self._rename_files()
 
-    def _rename(self):
+
+    def _get_data_from_items(self, file_item, data_item):
+
+        if not file_item or not data_item:
+            self._logger.debug('skipping: item: %s - new item: %s' %
+                (str(file_item), str(data_item)))
+            return
+
+        """Get the QListWidgetItem and the release information
+            for renaming the release directory.
+        """
+        data = {}
+        filename = unicode(file_item.text())
+        new_filename = "".join(c for c in unicode(data_item.text())
+            if c not in r'*?"<>|')
+        url = file_item.url
+
+        self._logger.debug('getting data for: %s' % unicode(file_item.text()))
+
+        # Append the file extension to the new url if tht file
+        # is not a directory.
+        if os.path.isfile(url):
+            _, ext = os.path.splitext(url)
+            new_filename = new_filename + ext.lower()
+
+        data['url'] = url
+        data['new_url'] = os.path.join(os.path.dirname(url), new_filename)
+        data['new_filename'] = new_filename
+        data['item'] = file_item
+
+        self._logger.debug('data: %s' % data)
+        return data
+
+
+    def _get_data_for_renaming(self):
+        """Get all items from the listwidgets to create data 
+            for renaming.
+        """
+        self._logger.debug('get items for renaming')
+
+        def get_items_from_listwidgets(i):
+            return self._ui.lst_ld.item(i), self._ui.lst_nw.item(i)
+
+        data, items = [], []
+        indices = range(self._ui.lst_ld.count())
+        try:
+            # Get a list of tuples of all elements of the local file
+            # listwidgetitems and the data listwidgetitems.
+            items = list(map(get_items_from_listwidgets, indices))
+            # Sort the item list to hold the release item as the last element.
+            items = sorted(items, key=lambda x: x[0].type, reverse=True)
+        except Exception:
+            # Fix: Give user feedback!
+            self._logger.error(traceback.format_exc())
+
+        for item in items:
+            data.append(self._get_data_from_items(item[0], item[1]))
+        return data
+
+
+    def _rename_file(self, data):
+        """Rename the release directory if it exists and no
+           other directory with the same name already exists.
+        """
+
+        def isfile_casesensitive(path):
+            if not os.path.isfile(path):
+                return False
+            directory, filename = os.path.split(path)
+            return filename in os.listdir(directory)
+
+        self._logger.debug('rename file from: %s to: %s' %
+            (data['url'], data['new_url']))
+
+        if data['url'] == data['new_url']:
+            self._logger.warn('skipping: old filename equals new filename')
+            return
+        if not os.path.exists(data['url']):
+            self._logger.warn('file does not exists: %s' % data['url'])
+            return
+        if isfile_casesensitive(data['new_url']):
+            self._logger.warn('file already exists')
+            return
+
+        # Rename the file.
+        os.rename(data['url'], data['new_url'])
+
+        # Show the new filename in the QListWidgetItem.
+        data['item'].setText(data['new_filename'])
+        data['item'].url = data['new_url']
+
+
+    def _rename_files(self):
         """Rename files with the new filenames build according to
            the user defined syntax from discogs data. Use the list
            widgets as data source / model to get the pathes for
            the renamed files and the new filenames.
         """
-        def get_items(i):
-            return self._ui.lst_ld.item(i), self._ui.lst_nw.item(i)
 
-        def update_dir_url(track_item, new_url):
+        def update_dir_url(track_item, dir_item):
             old_url = os.path.dirname(track_item.url)
+            track_item.url = track_item.url.replace(old_url, dir_item.url)
+            self._logger.debug('updating directory url for track from: %s to %s' % (old_url, dir_item.url))
 
-            self._logger.debug('updating track url: %s to %s' %
-                (old_url, new_url))
-            track_item.url = track_item.url.replace(old_url, new_url)
+        # Get all items required for the renaming.
+        data = self._get_data_for_renaming()
 
-        self._logger.debug('start renaming')
+        # Rename track files and release directory.
+        for item in data:
+            print item
+            self._rename_file(item)
 
-        try:
-            indices = range(self._ui.lst_ld.count())
-            # Get a list of tuples of all elements of the local file
-            # listwidgetitems and the data listwidgetitems.
-            items = list(map(get_items, indices))
-            # Sort the item list to hold the release item as the last element.
-            items = sorted(items, key=lambda x: x[0].type, reverse=True)
+        # Update the directory url of the tracks after the
+        # directory was renamed.
+        for track_item in data[:-1]:
+            update_dir_url(track_item['item'], data[-1]['item'])
 
-            # Rename track files and release directory.
-            for item in items:
-                self._rename_file(item[0], item[1])
 
-            # Update the directory url of the tracks.
-            for track_item in items[:-1]:
-                update_dir_url(track_item[0], items[-1][0].url)
+    def _order_items_for_undo(self, items):
+        # Sort the item list to hold the release item as the first element
+        # to undo the renaming if required.
+        self._undo_list = []
+        items = sorted(items, key=lambda x: x[0].type, reverse=False)
+        for item in items:
+            self._undo_list.append((item[1], item[0]))
+        self._undo_renaming()
 
-        except Exception:
-            self._logger.error(traceback.format_exc())
+    def _undo_renaming(self):
+        for item in self._undo_list:
+            print item[0].url
+            print item[1].url
 
     def _set_tags(self):
         """Set the meta tags in the audio files from the
@@ -996,5 +1025,5 @@ if __name__ == "__main__":
     win.show()
 
     if settingsHandler.data.get('init_dialog'):
-        StartDialog(settingsHandler)
+        StartDialog(settingsHandler, win)
     sys.exit(app.exec_())
