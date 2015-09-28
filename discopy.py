@@ -27,7 +27,8 @@ from shutil import move
 from time import time, sleep
 from PyQt4 import QtGui, QtCore
 from dialog import Ui_MainWindow
-from start_dialog import StartDialog
+from start_dialog_ui import StartDialogUi
+from rename_dialog_ui import RenameDialogUi
 from namebuilder import NameBuilder
 from settings_handler import SettingsHandler
 from tagdata import TagData
@@ -67,6 +68,27 @@ if os.path.exists(cert_path):
     os.environ['REQUESTS_CA_BUNDLE'] = cert_path
 
 
+def setup_logging():
+    logpath = os.path.join(expanduser("~"), 'discopy')
+    if not os.path.isdir(logpath):
+        os.makedirs(logpath)
+    log_file = os.path.join(logpath, 'discopy.log')
+    logger = logging.getLogger('discopy.main')
+    file_formatter = logging.Formatter(fmt='%(threadName)s | '
+                '%(filename)s: %(lineno)d | %(levelname)s: %(message)s')
+    file_handler = RotatingFileHandler(log_file, maxBytes=MAX_LOG_SIZE, backupCount=3, encoding='UTF-8')
+    file_handler.setFormatter(file_formatter)
+    logger.addHandler(file_handler)
+
+    stderr_log_handler = logging.StreamHandler()
+    bash_formatter = logging.Formatter(fmt='%(threadName)s | '
+                '%(filename)s: %(lineno)d | %(levelname)s: %(message)s')
+    stderr_log_handler.setFormatter(bash_formatter)
+    logger.addHandler(stderr_log_handler)
+    logger.setLevel(logging.DEBUG)
+    logger.debug('hello discopy')
+
+
 class Worker(QtCore.QObject):
     finished = QtCore.pyqtSignal()
     data_ready = QtCore.pyqtSignal(object)
@@ -89,12 +111,13 @@ class Worker(QtCore.QObject):
         self.data_ready.emit(data)
         self.finished.emit()
 
-class InitDialog(object):
+
+class StartDialog(object):
     def __init__(self, settingsHandler):
         # Init start dialog
         self.settingsHandler = settingsHandler
         self.dialog = QtGui.QDialog()
-        self.dialog.ui = StartDialog()
+        self.dialog.ui = StartDialogUi()
         self.dialog.ui.setupUi(self.dialog)
         self.dialog.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
@@ -103,9 +126,24 @@ class InitDialog(object):
         self.dialog.exec_()
 
     def _close(self):
-        settings_data = {'init_dialog':not self.dialog.ui.checkBox.isChecked()}
+        settings_data = {'init_dialog': not self.dialog.ui.checkBox.isChecked()}
         self.settingsHandler.data = settings_data
         self.dialog.close()
+
+
+class RenameDialog(QtGui.QDialog):
+    def __init__(self, settingsHandler, parent=None):
+        QtGui.QDialog.__init__(self, parent)
+        # Init start dialog
+        self.settingsHandler = settingsHandler
+        self.ui = RenameDialogUi()
+        self.ui.setupUi(self)
+
+    def close_dialog(self):
+        settings_data = {'rename_dialog': not self.ui.checkBox.isChecked()}
+        self.settingsHandler.data = settings_data
+        self.close()
+
 
 class DiscoPy(QtGui.QMainWindow):
 
@@ -115,8 +153,9 @@ class DiscoPy(QtGui.QMainWindow):
 
         self._ui = ui
         self._ui.setupUi(self)
-        self.settingsHandler = settingsHandler
+        self._settingsHandler = settingsHandler
         self._name_builder = name_builder
+        self._rename_dialog = None
         # Discogs api client
         self._client = client
         self._tagger = tagdata
@@ -129,14 +168,14 @@ class DiscoPy(QtGui.QMainWindow):
         # Simple model for the parsed discogs data.
         self._parsed_data = {}
         self._parsed_data[0] = {'release':
-                                {'name':'No results found.'},
-                                'tracks':{}
+                                {'name': 'No results found.'},
+                                'tracks': {}
                                 }
         self._parsed_data_id = 0
         self._img_download_pathes = {}
         # Index for the thumb preview of artwork images.
         self._thumb_index = 0
-        # Index counter to convert alpha numeric track 
+        # Index counter to convert alpha numeric track
         # indices to numeric indices.
         self._track_index = 1
         # Animation to show download progress
@@ -154,7 +193,7 @@ class DiscoPy(QtGui.QMainWindow):
         self._ui.btn_srch.clicked.connect(self._search)
         self._ui.btn_prv.clicked.connect(lambda: self._skip(-1))
         self._ui.btn_nxt.clicked.connect(lambda: self._skip(1))
-        self._ui.btn_rnm.clicked.connect(self._rename)
+        self._ui.btn_rnm.clicked.connect(self._show_rename_dialog)
         self._ui.btn_tgs.clicked.connect(self._set_tags)
         self._ui.lndt_t_sntx.text_modified.connect(self._update_list)
         self._ui.lndt_f_sntx.text_modified.connect(self._update_list)
@@ -182,6 +221,9 @@ class DiscoPy(QtGui.QMainWindow):
         self._ui.lbl_prgrss.setMovie(self._progress)
         # Initialize the syntax line edits.
         self._set_syntax()
+
+    def set_rename_dialog(self, rename_dialog):
+        self._rename_dialog = rename_dialog
 
     def _init_drop_search(self):
         release_title = self._get_tags()
@@ -257,7 +299,7 @@ class DiscoPy(QtGui.QMainWindow):
                 self._logger.debug('get release by barcode: ' + self._query)
                 self._discogs_data = self._client.search(barcode=self._query)
 
-            # Parse the data returned by discogs api or clear the 
+            # Parse the data returned by discogs api or clear the
             # listwidget when no search results are received.
             if len(self._discogs_data):
                 self._parse_data()
@@ -276,7 +318,7 @@ class DiscoPy(QtGui.QMainWindow):
                 index = '%s-%02d' % (''.join(parts[:-1]), int(parts[-1]),)
             except:
                 pass
-        return index 
+        return index
 
     def _parse_data(self):
         """Parse the discogs response to a simple data object. Since the
@@ -366,7 +408,7 @@ class DiscoPy(QtGui.QMainWindow):
                 index = str(track.position) \
                     if hasattr(track, 'position') else ''
                 track_data['index'] = self._convert_index(index)
-                track_data['artist'] = ', '.join(getattr(artist, 'name') 
+                track_data['artist'] = ', '.join(getattr(artist, 'name')
                     for artist in getattr(track, 'artists')
                     or []) if hasattr(track, 'artists') and len(track.artists) \
                     else release_data['artist']
@@ -647,13 +689,28 @@ class DiscoPy(QtGui.QMainWindow):
         except Exception:
             self._logger.error(traceback.format_exc())
 
+    def _show_rename_dialog(self):
+
+        def close_rename_dialog(button):
+            self._rename_dialog.close_dialog()
+            if button == 0:
+                return
+            elif button == 1:
+                self._rename()
+
+        if self._settingsHandler.data.get('rename_dialog'):
+            # Signals
+            self._rename_dialog.ui.cancelButton.clicked.connect(lambda: close_rename_dialog(0))
+            self._rename_dialog.ui.renameButton.clicked.connect(lambda: close_rename_dialog(1))
+            # Show dialog
+            self._rename_dialog.show()
+
     def _rename(self):
         """Rename files with the new filenames build according to
            the user defined syntax from discogs data. Use the list
            widgets as data source / model to get the pathes for
            the renamed files and the new filenames.
         """
-
         def get_items(i):
             return self._ui.lst_ld.item(i), self._ui.lst_nw.item(i)
 
@@ -730,7 +787,7 @@ class DiscoPy(QtGui.QMainWindow):
             except Exception:
                 self._logger.error(traceback.format_exc())
                 self._track_index = 1
-            
+
         self._logger.debug('finished setting tags')
         self._track_index = 0
 
@@ -894,11 +951,11 @@ class DiscoPy(QtGui.QMainWindow):
         track_syntax = unicode(self._ui.lndt_t_sntx.text())
         syntax = {'track_syntax': track_syntax,
             'release_syntax': release_syntax}
-        self.settingsHandler.data = syntax
+        self._settingsHandler.data = syntax
 
     def _set_syntax(self):
-        release_syntax = settingsHandler.data.get('release_syntax')
-        track_syntax = settingsHandler.data.get('track_syntax')
+        release_syntax = self._settingsHandler.data.get('release_syntax')
+        track_syntax = self._settingsHandler.data.get('track_syntax')
 
         if release_syntax:
             self._ui.lndt_f_sntx.setText(unicode(release_syntax))
@@ -911,24 +968,7 @@ class DiscoPy(QtGui.QMainWindow):
             self._ui.lndt_t_sntx.setText(TRCK_SNTX)
 
 if __name__ == "__main__":
-    logpath = os.path.join(expanduser("~"), 'discopy')
-    if not os.path.isdir(logpath):
-        os.makedirs(logpath)
-    log_file = os.path.join(logpath, 'discopy.log')
-    logger = logging.getLogger('discopy.main')
-    file_formatter = logging.Formatter(fmt='%(threadName)s | '
-                '%(filename)s: %(lineno)d | %(levelname)s: %(message)s')
-    file_handler = RotatingFileHandler(log_file, maxBytes=MAX_LOG_SIZE,  backupCount=3, encoding='UTF-8')
-    file_handler.setFormatter(file_formatter)
-    logger.addHandler(file_handler)
-
-    stderr_log_handler = logging.StreamHandler()
-    bash_formatter = logging.Formatter(fmt='%(threadName)s | '
-                '%(filename)s: %(lineno)d | %(levelname)s: %(message)s')
-    stderr_log_handler.setFormatter(bash_formatter)
-    logger.addHandler(stderr_log_handler)
-    logger.setLevel(logging.DEBUG)
-    logger.debug('hello discopy')
+    setup_logging()
 
     app = QtGui.QApplication(sys.argv)
     iconpath = resource_path(os.path.join(ICN_DIR, 'discopy.ico'))
@@ -945,6 +985,7 @@ if __name__ == "__main__":
     win = DiscoPy(Ui_MainWindow(), settingsHandler, Client('discopy/0.1', CONSUMER_KEY,
         CONSUMER_SECRET, TOKEN, SECRET), NameBuilder(), TagData, ImageHandler())
     win.setWindowIcon(QtGui.QIcon(iconpath))
+    win.set_rename_dialog(RenameDialog(settingsHandler, win))
     splash.finish(win)
 
     # import ctypes
@@ -955,5 +996,5 @@ if __name__ == "__main__":
     win.show()
 
     if settingsHandler.data.get('init_dialog'):
-        InitDialog(settingsHandler)
+        StartDialog(settingsHandler)
     sys.exit(app.exec_())
