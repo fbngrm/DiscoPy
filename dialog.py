@@ -93,9 +93,22 @@ class DNDListWidget(QtGui.QListWidget):
                     links.append(path)
                     break
             self.emit(QtCore.SIGNAL("dropped"), links)
+            self.drop_finished.emit()
             event.acceptProposedAction()
         else:
             super(DNDListWidget, self).dropEvent(event)
+
+    def emit_drop_event(self, path):
+        links = []
+        files = [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+        for file_ in files:
+            name, ext = os.path.splitext(file_)
+            if ext.lower() not in SPPRTD:
+                continue
+            links.append(file_)
+        links.append(path)
+        self.clear()
+        self.emit(QtCore.SIGNAL("dropped"), links)
 
     def clear(self):
         for i in range(self.count(), 0, -1):
@@ -123,7 +136,6 @@ class DNDListWidget(QtGui.QListWidget):
 
             # Color the list widget background alternatingly.
             self.color_items()
-            self.drop_finished.emit()
 
     def data_dropped(self, data, type_, editable=False, meta=None, url=None):
         # Get the icon for the listwidgetitem.
@@ -253,7 +265,7 @@ class Ui_MainWindow(object):
         self.btn_nxt.setObjectName(_fromUtf8("btn_nxt"))
 
         self.horizontalLayout.addWidget(self.btn_nxt)
-        spacerItem2 = QtGui.QSpacerItem(25, 20, QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Minimum)
+        spacerItem2 = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Minimum)
         self.horizontalLayout.addItem(spacerItem2)
 
         self.btn_imgs = QtGui.QPushButton(self.centralwidget)
@@ -265,6 +277,17 @@ class Ui_MainWindow(object):
         self.btn_tgs.setEnabled(True)
         self.btn_tgs.setObjectName(_fromUtf8("btn_tgs"))
         self.horizontalLayout.addWidget(self.btn_tgs)
+
+        spacerItemUndo = QtGui.QSpacerItem(40, 20, QtGui.QSizePolicy.Fixed, QtGui.QSizePolicy.Minimum)
+        self.horizontalLayout.addItem(spacerItemUndo)
+
+        self.btn_undo = QtGui.QPushButton(self.centralwidget)
+        self.btn_undo.setEnabled(False)
+        self.btn_undo.setMinimumSize(QtCore.QSize(0, 0))
+        self.btn_undo.setMaximumSize(QtCore.QSize(120, 16777215))
+        self.btn_undo.setLayoutDirection(QtCore.Qt.RightToLeft)
+        self.btn_undo.setObjectName(_fromUtf8("btn_undo"))
+        self.horizontalLayout.addWidget(self.btn_undo)
 
         self.btn_rnm = QtGui.QPushButton(self.centralwidget)
         self.btn_rnm.setEnabled(True)
@@ -472,6 +495,7 @@ class Ui_MainWindow(object):
         self.btn_imgs.setText(_translate("MainWindow", "Get Artwork", None))
         self.btn_tgs.setText(_translate("MainWindow", "Set Tags", None))
         self.btn_rnm.setText(_translate("MainWindow", "Rename", None))
+        self.btn_undo.setText(_translate("MainWindow", "Undo", None))
         self.label_4.setText(_translate("MainWindow", "Release:", None))
         self.lbl_url.setText(_translate("MainWindow", "Discogs URL", None))
         self.lbl_f_sntx.setText(_translate("MainWindow", "Release Syntax", None))

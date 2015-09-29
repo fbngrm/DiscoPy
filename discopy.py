@@ -197,6 +197,7 @@ class DiscoPy(QtGui.QMainWindow):
         self._ui.btn_prv.clicked.connect(lambda: self._skip(-1))
         self._ui.btn_nxt.clicked.connect(lambda: self._skip(1))
         self._ui.btn_rnm.clicked.connect(self._show_rename_dialog)
+        self._ui.btn_undo.clicked.connect(self._undo_renaming)
         self._ui.btn_tgs.clicked.connect(self._set_tags)
         self._ui.lndt_t_sntx.text_modified.connect(self._update_list)
         self._ui.lndt_f_sntx.text_modified.connect(self._update_list)
@@ -270,6 +271,8 @@ class DiscoPy(QtGui.QMainWindow):
         self._logger.debug('search for: ' + self._query)
         # Disable the search buttons during search process.
         self._toggle_search_buttons()
+        # Disable the undo button.
+        self._ui.btn_undo.setEnabled(False)
         # Run the search in a worker thread. Show search results when
         # the ´data_ready´ signal is emitted.
         self._run_worker(self._show_data, self._get_data)
@@ -706,11 +709,16 @@ class DiscoPy(QtGui.QMainWindow):
             return filename in os.listdir(directory)
 
         try:
-            if data['url'] == data['new_url']:
-                self._logger.warn('skipping: old filename equals new filename')
-                return
             if not os.path.exists(data['url']):
                 self._logger.warn('file does not exists: %s' % data['url'])
+                return
+
+            # Append new data to the undo_list to make sure the 
+            # directory is added to  the list even it is not renamed..
+            self._undo_list.append((data['new_url'], data['url']))
+
+            if data['url'] == data['new_url']:
+                self._logger.warn('skipping: old filename equals new filename')
                 return
             if isfile_casesensitive(data['new_url']):
                 self._logger.warn('file already exists')
@@ -718,7 +726,6 @@ class DiscoPy(QtGui.QMainWindow):
 
             # Rename the file.
             os.rename(data['url'], data['new_url'])
-            self._undo_list.append((data['new_url'], data['url']))
 
             self._logger.debug('successfully renamed file from: %s to: %s' %
                 (data['url'], data['new_url']))
@@ -769,13 +776,45 @@ class DiscoPy(QtGui.QMainWindow):
         for track_data in release_data[:-1]:
             update_dir_url(track_data, release_data)
 
-        self._undo_renaming()
+        # Enable the undo button.
+        self._ui.btn_undo.setEnabled(True)
 
     def _undo_renaming(self):
-        items = sorted(self._undo_list, key=lambda x: x[0].type, reverse=False)
-        for item in items:
-            print item[0].url
-            print item[1].url
+        items = self._undo_list
+        self._ui.btn_undo.setEnabled(False)
+
+        # Undo track renaming.
+        try:
+            for item in items[:-1]:
+
+                curr_dir = items[-1][0]
+                curr_name = os.path.basename(item[0])
+                curr_file = os.path.abspath(os.path.join(curr_dir, curr_name))
+                old_name = os.path.basename(item[1])
+                old_file = os.path.abspath(os.path.join(curr_dir, old_name))
+
+                self._logger.debug('revert track naming \nfrom: \n%s \nto: \n%s' % (curr_file, old_file))
+
+                os.rename(curr_file, old_file)
+        except:
+            self._logger.error('failed to revert track naming')
+            self._logger.error(traceback.format_exc())
+
+        # Undo directory renaming
+        try:
+            self._logger.debug('revert dir naming \nfrom: \n%s \nto: \n%s' % (items[-1][0], items[-1][1]))
+            os.rename(items[-1][0], items[-1][1])
+        except:
+            self._logger.error('failed to revert directory naming')
+            self._logger.error(traceback.format_exc())
+
+        # Drop the reverted directory to the listwidget to 
+        # update the ui.
+        try:
+            self._ui.lst_ld.emit_drop_event(items[-1][1])
+        except:
+            self._logger.warn('could not emit drop event after undo.')
+            self._logger.error(traceback.format_exc())
 
     def _set_tags(self):
         """Set the meta tags in the audio files from the
@@ -1012,7 +1051,7 @@ if __name__ == "__main__":
     splashpath = resource_path(os.path.join(ICN_DIR, SPLSH_SCRN))
     splash = QtGui.QSplashScreen(QtGui.QPixmap(splashpath))
     splash.show()
-    while time() - start < 2:
+    while time() - start < 0:
         sleep(0.001)
         app.processEvents()
 
