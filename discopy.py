@@ -318,6 +318,8 @@ class DiscoPy(QtGui.QMainWindow):
             self._logger.error(traceback.format_exc())
 
     def _convert_index(self, index):
+        if not '-' in index:
+            return index
         try:
             parts = index.split('-')
             index = '%s-%02d' % (''.join(parts[:-1]), int(parts[-1]),)
