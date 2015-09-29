@@ -641,31 +641,29 @@ class DiscoPy(QtGui.QMainWindow):
             the release directory from the listwidgetitems.
         """
 
-        if not file_item or not data_item:
-            self._logger.debug('skipping: file: %s - data: %s' %
-                (str(file_item), str(data_item)))
-            return
-
         data = {}
-        filename = unicode(file_item.text())
-        new_filename = "".join(c for c in unicode(data_item.text())
-            if c not in r'*?"<>|')
-        url = file_item.url
+        try:
+            filename = unicode(file_item.text())
+            new_filename = "".join(c for c in unicode(data_item.text())
+                if c not in r'*?"<>|')
+            url = file_item.url
 
-        self._logger.debug('getting data for: %s' % unicode(file_item.text()))
+            self._logger.debug('getting data for: %s' % unicode(file_item.text()))
 
-        # Append the file extension to the new url if tht file
-        # is not a directory.
-        if os.path.isfile(url):
-            _, ext = os.path.splitext(url)
-            new_filename = new_filename + ext.lower()
+            # Append the file extension to the new url if tht file
+            # is not a directory.
+            if os.path.isfile(url):
+                _, ext = os.path.splitext(url)
+                new_filename = new_filename + ext.lower()
 
-        data['url'] = url
-        data['new_url'] = os.path.join(os.path.dirname(url), new_filename)
-        data['new_filename'] = new_filename
-        data['item'] = file_item
+            data['url'] = url
+            data['new_url'] = os.path.join(os.path.dirname(url), new_filename)
+            data['new_filename'] = new_filename
+            data['item'] = file_item
 
-        self._logger.debug('data: %s' % data)
+            self._logger.debug('successfully got data: %s' % data)
+        except:
+            self._logger.warn('failed to get data')
         return data
 
 
@@ -692,6 +690,7 @@ class DiscoPy(QtGui.QMainWindow):
 
         for item in items:
             data.append(self._get_data_from_items(item[0], item[1]))
+
         return data
 
 
@@ -719,6 +718,7 @@ class DiscoPy(QtGui.QMainWindow):
 
             # Rename the file.
             os.rename(data['url'], data['new_url'])
+            self._undo_list.append((data['new_url'], data['url']))
 
             self._logger.debug('successfully renamed file from: %s to: %s' %
                 (data['url'], data['new_url']))
@@ -731,6 +731,7 @@ class DiscoPy(QtGui.QMainWindow):
            widgets as data source/model to get the pathes for
            the renamed files and the new filenames.
         """
+        
         def update_ui(data):
             # Show the new filename in the QListWidgetItem.
             try:
@@ -741,6 +742,8 @@ class DiscoPy(QtGui.QMainWindow):
                 self._logger.warn('failed to update ui')
 
         def update_dir_url(track_data, data):
+            # Update the directory name in the file system path of 
+            # all tracks/files.
             try:
                 track_item = track_data['item']
                 dir_item = data[-1]['item']
@@ -749,32 +752,28 @@ class DiscoPy(QtGui.QMainWindow):
                 self._logger.debug('updating directory url for track from: %s to %s' % (old_url, dir_item.url))
             except:
                 self._logger.warn('failed to update directory url')
+        
+        # Clear the undo_list first
+        self._undo_list = []
 
         # Get all items required for the renaming.
-        data = self._get_data_for_renaming()
+        release_data = self._get_data_for_renaming()
 
         # Rename track files and release directory.
-        for data_item in data:
-            self._rename_file(data_item)
-            update_ui(data_item)
+        for data in release_data:
+            self._rename_file(data)
+            update_ui(data)
 
         # Update the directory url of the tracks after the
         # directory was renamed.
-        for track_data in data[:-1]:
-            update_dir_url(track_data, data)
+        for track_data in release_data[:-1]:
+            update_dir_url(track_data, release_data)
 
-
-    def _order_items_for_undo(self, items):
-        # Sort the item list to hold the release item as the first element
-        # to undo the renaming if required.
-        self._undo_list = []
-        items = sorted(items, key=lambda x: x[0].type, reverse=False)
-        for item in items:
-            self._undo_list.append((item[1], item[0]))
         self._undo_renaming()
 
     def _undo_renaming(self):
-        for item in self._undo_list:
+        items = sorted(self._undo_list, key=lambda x: x[0].type, reverse=False)
+        for item in items:
             print item[0].url
             print item[1].url
 
