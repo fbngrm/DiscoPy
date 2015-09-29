@@ -1051,7 +1051,7 @@ if __name__ == "__main__":
     splashpath = resource_path(os.path.join(ICN_DIR, SPLSH_SCRN))
     splash = QtGui.QSplashScreen(QtGui.QPixmap(splashpath))
     splash.show()
-    while time() - start < 0:
+    while time() - start < 2:
         sleep(0.001)
         app.processEvents()
 
