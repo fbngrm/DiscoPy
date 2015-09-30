@@ -229,17 +229,6 @@ class DiscoPy(QtGui.QMainWindow):
     def set_rename_dialog(self, rename_dialog):
         self._rename_dialog = rename_dialog
 
-    def _init_drop_search(self):
-        release_title = self._get_tags()
-        if release_title:
-            self._query = release_title
-            self._query_type = 'release'
-            self._ui.lndt_rls.setText(release_title)
-            self._search()
-        else:
-            self._ui.lndt_rls.setStyleSheet("color: rgb(255, 0, 0);")
-            self._ui.lndt_rls.setText("Enter Query")
-
     def center(self):
         """Center the mainwindow when it is started.
         """
@@ -262,6 +251,35 @@ class DiscoPy(QtGui.QMainWindow):
             # Show data when the ´data_ready´ signal is emitted.
             self._run_worker(self._show_data, self._parse_data)
 
+    def _reset_fields(self):
+        # Clear the info labels.
+        self._ui.lbl_artst.clear()
+        self._ui.lbl_rls.clear()
+        self._ui.lbl_lbl.clear()
+        self._ui.lbl_yr.clear()
+        self._ui.lbl_lnk.clear()
+        self._ui.lbl_cvr.clear()
+        self._ui.lst_nw.clear()
+
+        # Clear the lineedits.
+        if self._query_type not in 'barcode':
+            self._ui.lndt_brcde.setText("")
+        if self._query_type not in 'release':
+            self._ui.lndt_rls.setText("")
+        if self._query_type not in 'url':
+            self._ui.lndt_url.setText("")
+
+    def _init_drop_search(self):
+        release_title = self._get_tags()
+        if release_title:
+            self._query = release_title
+            self._query_type = 'release'
+            self._ui.lndt_rls.setText(release_title)
+            self._search()
+        else:
+            self._ui.lndt_rls.setStyleSheet("color: rgb(255, 0, 0);")
+            self._ui.lndt_rls.setText("Enter Query")
+
     def _search(self):
         """Move the search to a worker thread. Show data in the list widget
            when the request returns.
@@ -269,6 +287,7 @@ class DiscoPy(QtGui.QMainWindow):
         if not self._query:
             return
         self._logger.debug('search for: ' + self._query)
+        self._reset_fields()
         # Disable the search buttons during search process.
         self._toggle_search_buttons()
         # Run the search in a worker thread. Show search results when
@@ -391,11 +410,17 @@ class DiscoPy(QtGui.QMainWindow):
 
         release_data['id'] = self._parsed_data_id
 
-        release_data['barcode'] = getattr(discogs_data, 'barcode') \
-            if hasattr(discogs_data, 'barcode') else 'unknown'
+        data = getattr(discogs_data, 'data') if hasattr(discogs_data, 'data') else {}
+        from pprint import pprint
+        pprint(data)
 
-        release_data['uri'] = getattr(discogs_data, 'uri') \
-            if hasattr(discogs_data, 'uri') else 'unknown'
+        release_data['uri'] = data.get('uri') or 'Unknown'
+
+        release_data['barcode'] = data.get('barcode')[0] or 'Unknown' if len(data.get('barcode') or []) else 'Unknown'
+
+        print 30*'='
+        release_data['barcode'] = data.get('identifiers')[0].get('value') if len(data.get('identifiers') or []) else 'Unknown'
+
         release_data['title'] = getattr(discogs_data, 'title') or 'Unknown' if hasattr(discogs_data, 'title') else 'Unknown'
         release_data['title'] = re.sub(r"\(\d+\)", "", release_data['title'])
 
@@ -457,31 +482,34 @@ class DiscoPy(QtGui.QMainWindow):
 
         self._ui.lst_nw.sortItems(QtCore.Qt.AscendingOrder)
 
-        # Set list widget for the release.
-        self._ui.lst_nw.data_dropped(release_data['release']['name'],
-            "release", meta=release_data, editable=True)
+        try:
+            # Enable the search buttons.
+            self._toggle_search_buttons()
 
-        # Color the list widget background alternatingly.
-        self._ui.lst_nw.color_items()
+            # Set list widget for the release.
+            self._ui.lst_nw.data_dropped(release_data['release']['name'],
+                "release", meta=release_data, editable=True)
 
-        # Enable the search buttons.
-        self._toggle_search_buttons()
+            # Color the list widget background alternatingly.
+            self._ui.lst_nw.color_items()
 
-        # Initialize the info labels.
-        self._ui.lbl_artst.setText(release_data['release']['artist'])
-        self._ui.lbl_rls.setText(release_data['release']['title'])
-        self._ui.lbl_lbl.setText(release_data['release']['label'])
-        self._ui.lbl_yr.setText(release_data['release']['year'])
-        self._ui.lbl_gnr.setText(release_data['release']['genres'])
+            # Initialize the info labels.
+            self._ui.lbl_artst.setText(release_data['release']['artist'])
+            self._ui.lbl_rls.setText(release_data['release']['title'])
+            self._ui.lbl_lbl.setText(release_data['release']['label'])
+            self._ui.lbl_yr.setText(release_data['release']['year'])
+            self._ui.lbl_lnk.setText('<a href="%s">%s</a>' % (release_data['release']['uri'], release_data['release']['title']))
 
-        # Initialize the textedits.
-        self._ui.lndt_brcde.setText(release_data['release']['barcode'])
-        self._ui.lndt_rls.setText(release_data['release']['title'])
-        self._ui.lndt_url.setText(release_data['release']['uri'])
+            # Initialize the textedits.
+            self._ui.lndt_brcde.setText(release_data['release']['barcode'])
+            self._ui.lndt_rls.setText(release_data['release']['title'])
+            self._ui.lndt_url.setText(release_data['release']['uri'])
 
-        # Get the artwork preview.
-        self._get_thumb()
-        self._logger.debug('finished showing data')
+            # Get the artwork preview.
+            self._get_thumb()
+            self._logger.debug('finished showing data')
+        except Exception:
+            self._logger.error('failed to show data')
 
     def _parse_url(self, url):
         """Parse the discogs url to determine the release type and
