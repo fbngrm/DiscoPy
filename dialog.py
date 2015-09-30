@@ -282,7 +282,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout.addItem(spacerItemUndo)
 
         self.btn_undo = QtGui.QPushButton(self.centralwidget)
-        self.btn_undo.setEnabled(False)
+        self.btn_undo.setEnabled(True)
         self.btn_undo.setMinimumSize(QtCore.QSize(0, 0))
         self.btn_undo.setMaximumSize(QtCore.QSize(120, 16777215))
         self.btn_undo.setLayoutDirection(QtCore.Qt.RightToLeft)

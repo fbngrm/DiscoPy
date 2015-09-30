@@ -271,8 +271,6 @@ class DiscoPy(QtGui.QMainWindow):
         self._logger.debug('search for: ' + self._query)
         # Disable the search buttons during search process.
         self._toggle_search_buttons()
-        # Disable the undo button.
-        self._ui.btn_undo.setEnabled(False)
         # Run the search in a worker thread. Show search results when
         # the ´data_ready´ signal is emitted.
         self._run_worker(self._show_data, self._get_data)
@@ -314,7 +312,7 @@ class DiscoPy(QtGui.QMainWindow):
                 self._ui.lst_nw.clear()
                 self._parsed_data_id = 0
 
-        except Exception:
+        except:
             self._logger.error(traceback.format_exc())
 
     def _convert_index(self, index):
@@ -359,10 +357,6 @@ class DiscoPy(QtGui.QMainWindow):
 
         # Parse discogs_data.
         release_data = {}
-        release_data['title'] = getattr(discogs_data, 'title') or 'Unknown' \
-            if hasattr(discogs_data, 'title') else 'Unknown'
-        release_data['title'] = re.sub(r"\(\d+\)", "", release_data['title'])
-
         release_data['year'] = str(getattr(discogs_data, 'year') or 'Unknown') \
             if hasattr(discogs_data, 'year') else 'Unknown'
 
@@ -395,8 +389,15 @@ class DiscoPy(QtGui.QMainWindow):
         release_data['images'] = getattr(discogs_data, 'images') \
             or [] if hasattr(discogs_data, 'images') else []
 
-        release_data['id'] = getattr(discogs_data, 'id') \
-            if hasattr(discogs_data, 'id') else 'Unknown ID'
+        release_data['id'] = self._parsed_data_id
+
+        release_data['barcode'] = getattr(discogs_data, 'barcode') \
+            if hasattr(discogs_data, 'barcode') else 'unknown'
+
+        release_data['uri'] = getattr(discogs_data, 'uri') \
+            if hasattr(discogs_data, 'uri') else 'unknown'
+        release_data['title'] = getattr(discogs_data, 'title') or 'Unknown' if hasattr(discogs_data, 'title') else 'Unknown'
+        release_data['title'] = re.sub(r"\(\d+\)", "", release_data['title'])
 
         # Build release name.
         release_name = self._name_builder.build_name(
@@ -417,8 +418,7 @@ class DiscoPy(QtGui.QMainWindow):
                 track_data['index'] = self._convert_index(index)
                 track_data['artist'] = ', '.join(getattr(artist, 'name')
                     for artist in getattr(track, 'artists')
-                    or []) if hasattr(track, 'artists') and len(track.artists) \
-                    else release_data['artist']
+                    or []) if hasattr(track, 'artists') and len(track.artists) else release_data['artist']
                 track_data['artist'] = re.sub(r"\(\d+\)", "", track_data['artist'])
                 # Build track name.
                 track_name = self._name_builder.build_name(
@@ -443,6 +443,7 @@ class DiscoPy(QtGui.QMainWindow):
         except Exception:
             # Enable the search buttons.
             self._toggle_search_buttons()
+            self._logger.error('failed to parse data')
             self._logger.error(traceback.format_exc())
             return
         # Clear list first.
@@ -472,6 +473,11 @@ class DiscoPy(QtGui.QMainWindow):
         self._ui.lbl_lbl.setText(release_data['release']['label'])
         self._ui.lbl_yr.setText(release_data['release']['year'])
         self._ui.lbl_gnr.setText(release_data['release']['genres'])
+
+        # Initialize the textedits.
+        self._ui.lndt_brcde.setText(release_data['release']['barcode'])
+        self._ui.lndt_rls.setText(release_data['release']['title'])
+        self._ui.lndt_url.setText(release_data['release']['uri'])
 
         # Get the artwork preview.
         self._get_thumb()
@@ -667,7 +673,7 @@ class DiscoPy(QtGui.QMainWindow):
             data['item'] = file_item
 
             self._logger.debug('successfully got data: %s' % data)
-        except:
+        except Exception:
             self._logger.warn('failed to get data')
         return data
 
@@ -731,7 +737,7 @@ class DiscoPy(QtGui.QMainWindow):
 
             self._logger.debug('successfully renamed file from: %s to: %s' %
                 (data['url'], data['new_url']))
-        except:
+        except Exception:
             self._logger.warn('falied to rename file')
 
     def _rename_files(self):
@@ -747,7 +753,7 @@ class DiscoPy(QtGui.QMainWindow):
                 data['item'].setText(data['new_filename'])
                 data['item'].url = data['new_url']
                 self._logger.debug('successfully updated ui for file %s' % (data['new_filename']))
-            except:
+            except Exception:
                 self._logger.warn('failed to update ui')
 
         def update_dir_url(track_data, data):
@@ -759,7 +765,7 @@ class DiscoPy(QtGui.QMainWindow):
                 old_url = os.path.dirname(track_item.url)
                 track_item.url = track_item.url.replace(old_url, dir_item.url)
                 self._logger.debug('updating directory url for track from: %s to %s' % (old_url, dir_item.url))
-            except:
+            except Exception:
                 self._logger.warn('failed to update directory url')
         
         # Clear the undo_list first
@@ -778,12 +784,8 @@ class DiscoPy(QtGui.QMainWindow):
         for track_data in release_data[:-1]:
             update_dir_url(track_data, release_data)
 
-        # Enable the undo button.
-        self._ui.btn_undo.setEnabled(True)
-
     def _undo_renaming(self):
         items = self._undo_list
-        self._ui.btn_undo.setEnabled(False)
 
         # Undo track renaming.
         try:
@@ -798,25 +800,22 @@ class DiscoPy(QtGui.QMainWindow):
                 self._logger.debug('revert track naming \nfrom: \n%s \nto: \n%s' % (curr_file, old_file))
 
                 os.rename(curr_file, old_file)
-        except:
+        except Exception:
             self._logger.error('failed to revert track naming')
-            self._logger.error(traceback.format_exc())
 
         # Undo directory renaming
         try:
             self._logger.debug('revert dir naming \nfrom: \n%s \nto: \n%s' % (items[-1][0], items[-1][1]))
             os.rename(items[-1][0], items[-1][1])
-        except:
+        except Exception:
             self._logger.error('failed to revert directory naming')
-            self._logger.error(traceback.format_exc())
 
         # Drop the reverted directory to the listwidget to 
         # update the ui.
         try:
             self._ui.lst_ld.emit_drop_event(items[-1][1])
-        except:
+        except Exception:
             self._logger.warn('could not emit drop event after undo.')
-            self._logger.error(traceback.format_exc())
 
     def _set_tags(self):
         """Set the meta tags in the audio files from the
@@ -852,7 +851,7 @@ class DiscoPy(QtGui.QMainWindow):
                 t.genre = data.get('genres').lower() or 'unknown'
                 try:
                     t.track = int(track.get('index'))
-                except:
+                except Exception:
                     t.track = self._track_index
                 t.comments = 'tagged with discopy'
                 t.country = data.get('country').lower() or 'unknown'
