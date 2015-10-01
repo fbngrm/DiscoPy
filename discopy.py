@@ -23,6 +23,7 @@ import sys
 import json
 import logging
 import traceback
+import webbrowser
 from shutil import move, copy
 from time import time, sleep
 from PyQt4 import QtGui, QtCore
@@ -219,6 +220,7 @@ class DiscoPy(QtGui.QMainWindow):
         self._ui.btn_rnm.clicked.connect(self._show_rename_dialog)
         self._ui.btn_undo.clicked.connect(self._undo_renaming)
         self._ui.btn_tgs.clicked.connect(self._set_tags)
+        self._ui.btn_hlp.clicked.connect(self._open_help)
         self._ui.lndt_t_sntx.text_modified.connect(self._update_list)
         self._ui.lndt_f_sntx.text_modified.connect(self._update_list)
         self._ui.lndt_t_sntx.text_modified.connect(self._save_syntax)
@@ -1058,6 +1060,10 @@ class DiscoPy(QtGui.QMainWindow):
 
         except urllib2.URLError:
             return False
+
+    def _open_help(self):
+        webbrowser.open('http://www.thoughtography.cc/discopy')
+
     def _save_syntax(self):
         self._logger.debug('save_syntax')
         release_syntax = unicode(self._ui.lndt_f_sntx.text())
