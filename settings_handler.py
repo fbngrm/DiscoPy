@@ -21,8 +21,12 @@ import os
 import json
 import sys
 
-STNGS = 'settings'
-SNTX_STNGS = 'syntax.json'
+LOG_DIR = 'discopy'
+STNGS_DIR = 'settings'
+STNGS_FILE = 'settings.json'
+HOME = os.path.expanduser("~")
+STNGS_PATH = os.path.abspath(os.path.join(HOME, LOG_DIR,
+    STNGS_DIR, STNGS_FILE))
 
 
 def resource_path(relative):
@@ -34,7 +38,11 @@ class SettingsHandler(object):
 
     def __init__(self):
         self._data = None
-        self.path = resource_path(os.path.join(STNGS, SNTX_STNGS))
+
+        if os.path.isfile(STNGS_PATH):
+            self.path = STNGS_PATH
+        else:
+            self.path = resource_path(os.path.join(STNGS_DIR, STNGS_FILE))
 
     @property
     def data(self):
@@ -44,7 +52,7 @@ class SettingsHandler(object):
                     self._data = json.load(json_data)
                     json_data.close()
             return self._data
-        except:
+        except Exception:
             return {}
 
     @data.setter
@@ -57,6 +65,5 @@ class SettingsHandler(object):
                 json.dump(dump_data, json_data)
                 json_data.close()
                 self._data = dump_data
-        except Exception as e:
-            print e
-
+        except Exception:
+            pass

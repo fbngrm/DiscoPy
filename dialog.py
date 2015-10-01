@@ -11,7 +11,6 @@ You should have received a copy of the GNU General Public License along with D
 """
 
 import os
-import chardet
 from PyQt4 import QtCore, QtGui
 
 try:

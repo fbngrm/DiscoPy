@@ -23,7 +23,7 @@ import sys
 import json
 import logging
 import traceback
-from shutil import move
+from shutil import move, copy
 from time import time, sleep
 from PyQt4 import QtGui, QtCore
 from dialog import Ui_MainWindow
@@ -54,22 +54,42 @@ THMB_DIR = 'thumbs'
 TMP_IMG_DIR = 'images'
 RLS_SNTX = "artist - release [labels year]"
 TRCK_SNTX = "index track"
+LOG_DIR = 'discopy'
 MAX_LOG_SIZE = 100000
+STNGS = 'settings'
+STNGS_FILE = 'settings.json'
+HOME = expanduser("~")
 
 
+# Create resource path for production environment according to
+# pyinstaller resource handling.
 def resource_path(relative):
     return os.path.join(getattr(sys, '_MEIPASS',
         os.path.abspath(".")), relative)
-cert_path = resource_path('cacert.pem')
 
 # Set `REQUESTS_CA_BUNDLE` path for `requests` module pem
 # file if not in development mode.
+cert_path = resource_path('cacert.pem')
 if os.path.exists(cert_path):
     os.environ['REQUESTS_CA_BUNDLE'] = cert_path
 
+def setup_settings():
+    # Ensure the settings directory exists.
+    settings_dir = os.path.abspath(os.path.join(HOME, LOG_DIR, STNGS))
+    if not os.path.isdir(settings_dir):
+        os.makedirs(settings_dir)
+
+    # Topy the settings file to home dir of the user.
+    settings_file = os.path.join(settings_dir, STNGS_FILE)
+    if not os.path.isfile(settings_file):
+        settings_src = resource_path(os.path.join(STNGS, STNGS_FILE))
+        try:
+            copy(settings_src, settings_file)
+        except Exception:
+            pass
 
 def setup_logging():
-    logpath = os.path.join(expanduser("~"), 'discopy')
+    logpath = os.path.abspath(os.path.join(HOME, 'discopy'))
     if not os.path.isdir(logpath):
         os.makedirs(logpath)
     log_file = os.path.join(logpath, 'discopy.log')
@@ -411,14 +431,10 @@ class DiscoPy(QtGui.QMainWindow):
         release_data['id'] = self._parsed_data_id
 
         data = getattr(discogs_data, 'data') if hasattr(discogs_data, 'data') else {}
-        from pprint import pprint
-        pprint(data)
 
         release_data['uri'] = data.get('uri') or 'Unknown'
 
         release_data['barcode'] = data.get('barcode')[0] or 'Unknown' if len(data.get('barcode') or []) else 'Unknown'
-
-        print 30*'='
         release_data['barcode'] = data.get('identifiers')[0].get('value') if len(data.get('identifiers') or []) else 'Unknown'
 
         release_data['title'] = getattr(discogs_data, 'title') or 'Unknown' if hasattr(discogs_data, 'title') else 'Unknown'
@@ -509,6 +525,7 @@ class DiscoPy(QtGui.QMainWindow):
             self._get_thumb()
             self._logger.debug('finished showing data')
         except Exception:
+            self._logger.error(traceback.format_exc())
             self._logger.error('failed to show data')
 
     def _parse_url(self, url):
@@ -1041,13 +1058,6 @@ class DiscoPy(QtGui.QMainWindow):
 
         except urllib2.URLError:
             return False
-
-    def keyPressEvent(self, event):
-        key = event.key()
-        if key == 81 or key == 87:
-            self._save_syntax()
-            sys.exit(0)
-
     def _save_syntax(self):
         self._logger.debug('save_syntax')
         release_syntax = unicode(self._ui.lndt_f_sntx.text())
@@ -1055,6 +1065,16 @@ class DiscoPy(QtGui.QMainWindow):
         syntax = {'track_syntax': track_syntax,
             'release_syntax': release_syntax}
         self._settingsHandler.data = syntax
+
+    def _clear_icons(self):
+        thumb_dir = resource_path(THMB_DIR)
+        for file_ in os.listdir(thumb_dir):
+            file_path = os.path.join(thumb_dir, file_)
+            try:
+                if os.path.isfile(file_path):
+                    os.unlink(file_path)
+            except Exception:
+                pass
 
     def _set_syntax(self):
         release_syntax = self._settingsHandler.data.get('release_syntax')
@@ -1070,8 +1090,22 @@ class DiscoPy(QtGui.QMainWindow):
         else:
             self._ui.lndt_t_sntx.setText(TRCK_SNTX)
 
+    def closeEvent(self, event):
+        self._save_syntax()
+        self._clear_icons()
+        event.accept()
+
+    def keyPressEvent(self, event):
+        key = event.key()
+        if key == 81 or key == 87:
+            self._save_syntax()
+            self._clear_icons()
+            sys.exit(0)
+
+
 if __name__ == "__main__":
     setup_logging()
+    setup_settings()
 
     app = QtGui.QApplication(sys.argv)
     iconpath = resource_path(os.path.join(ICN_DIR, 'discopy.ico'))
@@ -1085,8 +1119,7 @@ if __name__ == "__main__":
         app.processEvents()
 
     settingsHandler = SettingsHandler()
-    win = DiscoPy(Ui_MainWindow(), settingsHandler, Client('discopy/0.1', CONSUMER_KEY,
-        CONSUMER_SECRET, TOKEN, SECRET), NameBuilder(), TagData, ImageHandler())
+    win = DiscoPy(Ui_MainWindow(), settingsHandler, Client('discopy/0.1', CONSUMER_KEY, CONSUMER_SECRET, TOKEN, SECRET), NameBuilder(), TagData, ImageHandler())
     win.setWindowIcon(QtGui.QIcon(iconpath))
     win.set_rename_dialog(RenameDialog(settingsHandler, win))
     splash.finish(win)
