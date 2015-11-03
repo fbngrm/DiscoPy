@@ -20,7 +20,6 @@ DiscoPy. If not, see <http://www.gnu.org/licenses/>.
 import re
 import os
 import sys
-import json
 import logging
 import traceback
 import webbrowser
@@ -36,7 +35,6 @@ from tagdata import TagData
 from imageloader import ImageHandler
 from discogs_client import Client
 from os.path import expanduser
-from operator import itemgetter
 from logging.handlers import RotatingFileHandler
 import urllib2
 
@@ -65,14 +63,15 @@ HOME = expanduser("~")
 # Create resource path for production environment according to
 # pyinstaller resource handling.
 def resource_path(relative):
-    return os.path.join(getattr(sys, '_MEIPASS',
-        os.path.abspath(".")), relative)
+    return os.path.join(
+        getattr(sys, '_MEIPASS', os.path.abspath(".")), relative)
 
 # Set `REQUESTS_CA_BUNDLE` path for `requests` module pem
 # file if not in development mode.
 cert_path = resource_path('cacert.pem')
 if os.path.exists(cert_path):
     os.environ['REQUESTS_CA_BUNDLE'] = cert_path
+
 
 def setup_settings():
     # Ensure the settings directory exists.
@@ -89,21 +88,23 @@ def setup_settings():
         except Exception:
             pass
 
+
 def setup_logging():
     logpath = os.path.abspath(os.path.join(HOME, 'discopy'))
     if not os.path.isdir(logpath):
         os.makedirs(logpath)
     log_file = os.path.join(logpath, 'discopy.log')
     logger = logging.getLogger('discopy.main')
-    file_formatter = logging.Formatter(fmt='%(threadName)s | '
-                '%(filename)s: %(lineno)d | %(levelname)s: %(message)s')
-    file_handler = RotatingFileHandler(log_file, maxBytes=MAX_LOG_SIZE, backupCount=3, encoding='UTF-8')
+    file_formatter = logging.Formatter(
+        fmt='%(threadName)s | %(filename)s: %(lineno)d | %(levelname)s: %(message)s')
+    file_handler = RotatingFileHandler(
+        log_file, maxBytes=MAX_LOG_SIZE, backupCount=3, encoding='UTF-8')
     file_handler.setFormatter(file_formatter)
     logger.addHandler(file_handler)
 
     stderr_log_handler = logging.StreamHandler()
-    bash_formatter = logging.Formatter(fmt='%(threadName)s | '
-                '%(filename)s: %(lineno)d | %(levelname)s: %(message)s')
+    bash_formatter = logging.Formatter(
+        fmt='%(threadName)s | %(filename)s: %(lineno)d | %(levelname)s: %(message)s')
     stderr_log_handler.setFormatter(bash_formatter)
     logger.addHandler(stderr_log_handler)
     logger.setLevel(logging.DEBUG)
