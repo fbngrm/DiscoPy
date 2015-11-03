@@ -53,11 +53,15 @@ THMB_DIR = 'thumbs'
 TMP_IMG_DIR = 'images'
 RLS_SNTX = "artist - release [labels year]"
 TRCK_SNTX = "index track"
-LOG_DIR = 'discopy'
 MAX_LOG_SIZE = 100000
 STNGS = 'settings'
 STNGS_FILE = 'settings.json'
 HOME = expanduser("~")
+LOG_FILE = 'discopy.log'
+if os.name == 'posix':
+    LOG_DIR = '.discopy'
+else:
+    LOG_DIR = 'discopy'
 
 
 # Create resource path for production environment according to
@@ -90,10 +94,10 @@ def setup_settings():
 
 
 def setup_logging():
-    logpath = os.path.abspath(os.path.join(HOME, 'discopy'))
+    logpath = os.path.abspath(os.path.join(HOME, LOG_DIR))
     if not os.path.isdir(logpath):
         os.makedirs(logpath)
-    log_file = os.path.join(logpath, 'discopy.log')
+    log_file = os.path.join(logpath, LOG_FILE)
     logger = logging.getLogger('discopy.main')
     file_formatter = logging.Formatter(
         fmt='%(threadName)s | %(filename)s: %(lineno)d | %(levelname)s: %(message)s')
@@ -725,7 +729,6 @@ class DiscoPy(QtGui.QMainWindow):
             self._logger.warn('failed to get data')
         return data
 
-
     def _get_data_for_renaming(self):
         """Get all items from the listwidgets to create data
             for renaming.
@@ -751,7 +754,6 @@ class DiscoPy(QtGui.QMainWindow):
             data.append(self._get_data_from_items(item[0], item[1]))
 
         return data
-
 
     def _rename_file(self, data):
         """Rename all files in the release directory if it exists
@@ -1070,7 +1072,7 @@ class DiscoPy(QtGui.QMainWindow):
         release_syntax = unicode(self._ui.lndt_f_sntx.text())
         track_syntax = unicode(self._ui.lndt_t_sntx.text())
         syntax = {'track_syntax': track_syntax,
-            'release_syntax': release_syntax}
+                  'release_syntax': release_syntax}
         self._settingsHandler.data = syntax
 
     def _clear_icons(self):
