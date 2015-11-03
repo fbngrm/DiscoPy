@@ -21,17 +21,21 @@ import os
 import json
 import sys
 
-LOG_DIR = 'discopy'
+if os.name == 'posix':
+    LOG_DIR = '.discopy'
+else:
+    LOG_DIR = 'discopy'
+
 STNGS_DIR = 'settings'
 STNGS_FILE = 'settings.json'
 HOME = os.path.expanduser("~")
-STNGS_PATH = os.path.abspath(os.path.join(HOME, LOG_DIR,
-    STNGS_DIR, STNGS_FILE))
+STNGS_PATH = os.path.abspath(
+    os.path.join(HOME, LOG_DIR, STNGS_DIR, STNGS_FILE))
 
 
 def resource_path(relative):
-    return os.path.join(getattr(sys, '_MEIPASS',
-        os.path.abspath(".")), relative)
+    return os.path.join(getattr(
+        sys, '_MEIPASS', os.path.abspath(".")), relative)
 
 
 class SettingsHandler(object):
