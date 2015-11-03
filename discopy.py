@@ -244,8 +244,7 @@ class DiscoPy(QtGui.QMainWindow):
         # Init
         self._set_focus()
         # Initialize the progress animation
-        imagepath = os.path.abspath(os.path.join(os.path.dirname(__file__),
-            'icons', PRGRSS_ICN))
+        imagepath = resource_path(os.path.join('icons', PRGRSS_ICN))
         self._progress = QtGui.QMovie(imagepath, QtCore.QByteArray(), self)
         self._progress.setCacheMode(QtGui.QMovie.CacheAll)
         self._progress.setSpeed(100)
@@ -865,7 +864,7 @@ class DiscoPy(QtGui.QMainWindow):
         try:
             self._ui.lst_ld.emit_drop_event(items[-1][1])
         except Exception:
-            self._logger.warn('could not emit drop event after undo.')
+            self._logger.error('could not emit drop event after undo.')
 
     def _set_tags(self):
         """Set the meta tags in the audio files from the

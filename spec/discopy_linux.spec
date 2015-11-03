@@ -1,14 +1,14 @@
 # -*- mode: python -*-
-a = Analysis(['discopy.py'],
-             pathex=['/home/antx/wrk/py/lib/python2.7/site-packages', '/home/antx/wrk/py/discopy/discopy'],
+a = Analysis(['../discopy.py'],
+             pathex=['/home/grim/wrk/py/discopy_venv/lib/python2.7/site-packages/', '/home/grim/wrk/py/discopy_venv/discopy'],
              hiddenimports=[],
              hookspath=None,
              runtime_hooks=None)
 a.datas.append(('cacert.pem', '../lib/python2.7/site-packages/requests/cacert.pem', 'DATA'))
-icon_tree = Tree('/home/antx/wrk/py/discopy/discopy/icons', prefix='icons')
-thumb_tree = Tree('/home/antx/wrk/py/discopy/discopy/thumbs', prefix='thumbs')
-images_tree = Tree('/home/antx/wrk/py/discopy/discopy/images', prefix='images')
-settings_tree = Tree('/home/antx/wrk/py/discopy/discopy/settings', prefix='settings')
+icon_tree = Tree('/home/grim/wrk/py/discopy_venv/discopy/icons', prefix='icons')
+thumb_tree = Tree('/home/grim/wrk/py/discopy_venv/discopy/thumbs', prefix='thumbs')
+images_tree = Tree('/home/grim/wrk/py/discopy_venv/discopy/images', prefix='images')
+settings_tree = Tree('/home/grim/wrk/py/discopy_venv/discopy/settings', prefix='settings')
 pyz = PYZ(a.pure)
 exe = EXE(pyz,
           a.scripts,
@@ -24,5 +24,4 @@ exe = EXE(pyz,
           strip=None,
           upx=False,
           console=True,
-          icon='/home/antx/wrk/py/discopy/discopy/icons/discopy.ico' )
-
+          icon='/home/grim/wrk/py/discopy_venv/discopy/icons/discopy.ico' )
