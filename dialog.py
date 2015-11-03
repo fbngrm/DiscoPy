@@ -33,12 +33,13 @@ SPPRTD = ['.mp3', '.aac', '.alac',
     '.ogg', '.asf', '.mpc',
     '.aiff', '.opus', '.mp4',
     '.wav', '.flac', '.aif',
-    '.mid', '.m4a', '.ape'
-    ]
+    '.mid', '.m4a', '.ape']
+
 ITM_TPS = {
     "release": "record_30px.png",
     "track": "track_30px.png"
 }
+
 
 class ClickableLabel(QtGui.QLabel):
 
@@ -83,7 +84,8 @@ class DNDListWidget(QtGui.QListWidget):
                     continue
                 else:
                     self.clear()
-                    files = [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+                    files = [os.path.join(path, f) for f in os.listdir(path)
+                        if os.path.isfile(os.path.join(path, f))]
                     for file_ in files:
                         name, ext = os.path.splitext(file_)
                         if ext.lower() not in SPPRTD:
@@ -99,7 +101,8 @@ class DNDListWidget(QtGui.QListWidget):
 
     def emit_drop_event(self, path):
         links = []
-        files = [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+        files = [os.path.join(path, f) for f in os.listdir(path)
+            if os.path.isfile(os.path.join(path, f))]
         for file_ in files:
             name, ext = os.path.splitext(file_)
             if ext.lower() not in SPPRTD:
@@ -131,14 +134,16 @@ class DNDListWidget(QtGui.QListWidget):
             self.sortItems(QtCore.Qt.AscendingOrder)
 
             # Drop the release to be the first widget.
-            self.data_dropped(os.path.basename(data[-1]), "release", url=release_data)
+            self.data_dropped(
+                os.path.basename(data[-1]), "release", url=release_data)
 
             # Color the list widget background alternatingly.
             self.color_items()
 
     def data_dropped(self, data, type_, editable=False, meta=None, url=None):
         # Get the icon for the listwidgetitem.
-        icon_path = os.path.abspath(os.path.join(os.path.dirname(__file__), 'icons', ITM_TPS[type_]))
+        icon_path = os.path.abspath(os.path.join(
+            os.path.dirname(__file__), 'icons', ITM_TPS[type_]))
         icon = QtGui.QIcon(icon_path)
 
         # Create a listwidgetitem.
@@ -150,7 +155,8 @@ class DNDListWidget(QtGui.QListWidget):
             item.setFlags(item.flags() | QtCore.Qt.ItemIsEditable)
         self.insertItem(0, item)
 
-        # due to the lack of model we have to store meta information for id tagging in the items.
+        # due to the lack of model we have to store meta information for id
+        # tagging in the items.
         if type_ == "release" and meta:
             item.data = meta['release']
         elif meta:

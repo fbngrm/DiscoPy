@@ -695,7 +695,7 @@ class DiscoPy(QtGui.QMainWindow):
             self._rename_files()
 
     def _get_data_from_items(self, file_item, data_item):
-        """Get the release information for renaming the tracks and 
+        """Get the release information for renaming the tracks and
             the release directory from the listwidgetitems.
         """
 
@@ -726,7 +726,7 @@ class DiscoPy(QtGui.QMainWindow):
 
 
     def _get_data_for_renaming(self):
-        """Get all items from the listwidgets to create data 
+        """Get all items from the listwidgets to create data
             for renaming.
         """
         self._logger.debug('get items for renaming')
@@ -753,7 +753,7 @@ class DiscoPy(QtGui.QMainWindow):
 
 
     def _rename_file(self, data):
-        """Rename all files in the release directory if it exists 
+        """Rename all files in the release directory if it exists
            and no other directory/file with the same name already exists.
         """
 
@@ -768,7 +768,7 @@ class DiscoPy(QtGui.QMainWindow):
                 self._logger.warn('file does not exists: %s' % data['url'])
                 return
 
-            # Append new data to the undo_list to make sure the 
+            # Append new data to the undo_list to make sure the
             # directory is added to  the list even it is not renamed..
             self._undo_list.append((data['new_url'], data['url']))
 
@@ -793,7 +793,7 @@ class DiscoPy(QtGui.QMainWindow):
            widgets as data source/model to get the pathes for
            the renamed files and the new filenames.
         """
-        
+
         def update_ui(data):
             # Show the new filename in the QListWidgetItem.
             try:
@@ -804,7 +804,7 @@ class DiscoPy(QtGui.QMainWindow):
                 self._logger.warn('failed to update ui')
 
         def update_dir_url(track_data, data):
-            # Update the directory name in the file system path of 
+            # Update the directory name in the file system path of
             # all tracks/files.
             try:
                 track_item = track_data['item']
@@ -814,7 +814,7 @@ class DiscoPy(QtGui.QMainWindow):
                 self._logger.debug('updating directory url for track from: %s to %s' % (old_url, dir_item.url))
             except Exception:
                 self._logger.warn('failed to update directory url')
-        
+
         # Clear the undo_list first
         self._undo_list = []
 
@@ -857,7 +857,7 @@ class DiscoPy(QtGui.QMainWindow):
         except Exception:
             self._logger.error('failed to revert directory naming')
 
-        # Drop the reverted directory to the listwidget to 
+        # Drop the reverted directory to the listwidget to
         # update the ui.
         try:
             self._ui.lst_ld.emit_drop_event(items[-1][1])
@@ -1115,6 +1115,7 @@ if __name__ == "__main__":
 
     app = QtGui.QApplication(sys.argv)
     iconpath = resource_path(os.path.join(ICN_DIR, 'discopy.ico'))
+    print iconpath
 
     start = time()
     splashpath = resource_path(os.path.join(ICN_DIR, SPLSH_SCRN))
