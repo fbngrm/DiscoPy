@@ -45,13 +45,9 @@ class SettingsHandler(object):
 
         if os.path.isfile(STNGS_PATH):
             self.path = STNGS_PATH
-            print 'if'
-            print self.path
         else:
             self.path = resource_path(
                 os.path.join(LOG_DIR, STNGS_DIR, STNGS_FILE))
-            print 'else'
-            print self.path
 
     @property
     def data(self):

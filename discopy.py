@@ -83,7 +83,7 @@ def setup_settings():
     if not os.path.isdir(settings_dir):
         os.makedirs(settings_dir)
 
-    # Topy the settings file to home dir of the user.
+    # Copy the settings file to home dir of the user.
     settings_file = os.path.join(settings_dir, STNGS_FILE)
     if not os.path.isfile(settings_file):
         settings_src = resource_path(os.path.join(STNGS, STNGS_FILE))
@@ -99,16 +99,14 @@ def setup_logging():
         os.makedirs(logpath)
     log_file = os.path.join(logpath, LOG_FILE)
     logger = logging.getLogger('discopy.main')
-    file_formatter = logging.Formatter(
-        fmt='%(threadName)s | %(filename)s: %(lineno)d | %(levelname)s: %(message)s')
+    file_formatter = logging.Formatter(fmt='%(threadName)s | %(filename)s: %(lineno)d | %(levelname)s: %(message)s')
     file_handler = RotatingFileHandler(
         log_file, maxBytes=MAX_LOG_SIZE, backupCount=3, encoding='UTF-8')
     file_handler.setFormatter(file_formatter)
     logger.addHandler(file_handler)
 
     stderr_log_handler = logging.StreamHandler()
-    bash_formatter = logging.Formatter(
-        fmt='%(threadName)s | %(filename)s: %(lineno)d | %(levelname)s: %(message)s')
+    bash_formatter = logging.Formatter(fmt='%(threadName)s | %(filename)s: %(lineno)d | %(levelname)s: %(message)s')
     stderr_log_handler.setFormatter(bash_formatter)
     logger.addHandler(stderr_log_handler)
     logger.setLevel(logging.DEBUG)
@@ -1076,13 +1074,13 @@ class DiscoPy(QtGui.QMainWindow):
 
     def _clear_icons(self):
         thumb_dir = resource_path(THMB_DIR)
-        for file_ in os.listdir(thumb_dir):
-            file_path = os.path.join(thumb_dir, file_)
-            try:
+        try:
+            for file_ in os.listdir(thumb_dir):
+                file_path = os.path.join(thumb_dir, file_)
                 if os.path.isfile(file_path):
                     os.unlink(file_path)
-            except Exception:
-                pass
+        except Exception:
+            pass
 
     def _set_syntax(self):
         release_syntax = self._settingsHandler.data.get('release_syntax')
@@ -1117,7 +1115,6 @@ if __name__ == "__main__":
 
     app = QtGui.QApplication(sys.argv)
     iconpath = resource_path(os.path.join(ICN_DIR, 'discopy.ico'))
-    print iconpath
 
     start = time()
     splashpath = resource_path(os.path.join(ICN_DIR, SPLSH_SCRN))
@@ -1128,7 +1125,16 @@ if __name__ == "__main__":
         app.processEvents()
 
     settingsHandler = SettingsHandler()
-    win = DiscoPy(Ui_MainWindow(), settingsHandler, Client('discopy/0.1', CONSUMER_KEY, CONSUMER_SECRET, TOKEN, SECRET), NameBuilder(), TagData, ImageHandler())
+    win = DiscoPy(
+        Ui_MainWindow(),
+        settingsHandler,
+        Client('discopy/0.1',
+        CONSUMER_KEY, CONSUMER_SECRET,
+        TOKEN, SECRET),
+        NameBuilder(),
+        TagData,
+        ImageHandler())
+
     win.setWindowIcon(QtGui.QIcon(iconpath))
     win.set_rename_dialog(RenameDialog(settingsHandler, win))
     splash.finish(win)
