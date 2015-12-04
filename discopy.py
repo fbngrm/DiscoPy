@@ -27,6 +27,7 @@ from shutil import move, copy
 from time import time, sleep
 from PyQt4 import QtGui, QtCore
 from dialog import Ui_MainWindow
+from constants import *
 from start_dialog_ui import StartDialogUi
 from rename_dialog_ui import RenameDialogUi
 from namebuilder import NameBuilder
@@ -34,7 +35,6 @@ from settings_handler import SettingsHandler
 from tagdata import TagData
 from imageloader import ImageHandler
 from discogs_client import Client
-from os.path import expanduser
 from logging.handlers import RotatingFileHandler
 import urllib2
 
@@ -42,26 +42,9 @@ try:
     from auth import CONSUMER_KEY, CONSUMER_SECRET, TOKEN, SECRET
 except:
     print 'Discogs OAuth credentials are missing!'
+    sys.exit()
 
 # sys.setdefaultencoding('utf-8')
-
-CHCK_NTWRK = 'http://www.google.com'
-PRGRSS_ICN = 'progress.gif'
-ICN_DIR = 'icons'
-SPLSH_SCRN = 'discopy_800px.png'
-THMB_DIR = 'thumbs'
-TMP_IMG_DIR = 'images'
-RLS_SNTX = "artist - release [labels year]"
-TRCK_SNTX = "index track"
-MAX_LOG_SIZE = 100000
-STNGS = 'settings'
-STNGS_FILE = 'settings.json'
-HOME = expanduser("~")
-LOG_FILE = 'discopy.log'
-if os.name == 'posix':
-    LOG_DIR = '.discopy'
-else:
-    LOG_DIR = 'discopy'
 
 
 # Create resource path for production environment according to
