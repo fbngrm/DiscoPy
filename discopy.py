@@ -23,7 +23,7 @@ import sys
 import logging
 import traceback
 import webbrowser
-from shutil import move, copy
+from shutil import move
 from time import time, sleep
 from PyQt4 import QtGui, QtCore
 from dialog import Ui_MainWindow
@@ -58,22 +58,6 @@ def resource_path(relative):
 cert_path = resource_path('cacert.pem')
 if os.path.exists(cert_path):
     os.environ['REQUESTS_CA_BUNDLE'] = cert_path
-
-
-def setup_settings():
-    # Ensure the settings directory exists.
-    settings_dir = os.path.abspath(os.path.join(HOME, LOG_DIR, STNGS))
-    if not os.path.isdir(settings_dir):
-        os.makedirs(settings_dir)
-
-    # Copy the settings file to home dir of the user.
-    settings_file = os.path.join(settings_dir, STNGS_FILE)
-    if not os.path.isfile(settings_file):
-        settings_src = resource_path(os.path.join(STNGS, STNGS_FILE))
-        try:
-            copy(settings_src, settings_file)
-        except Exception:
-            pass
 
 
 def setup_logging():
@@ -1093,8 +1077,9 @@ class DiscoPy(QtGui.QMainWindow):
 
 
 if __name__ == "__main__":
+    settingsHandler = SettingsHandler()
+    settingsHandler.setup()
     setup_logging()
-    setup_settings()
 
     app = QtGui.QApplication(sys.argv)
     iconpath = resource_path(os.path.join(ICN_DIR, 'discopy.ico'))
@@ -1107,7 +1092,6 @@ if __name__ == "__main__":
         sleep(0.001)
         app.processEvents()
 
-    settingsHandler = SettingsHandler()
     win = DiscoPy(
         Ui_MainWindow(),
         settingsHandler,
