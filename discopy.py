@@ -33,6 +33,7 @@ from rename_dialog_ui import RenameDialogUi
 from namebuilder import NameBuilder
 from settings_handler import SettingsHandler
 from logging_handler import setup_logging
+from disco_threads.worker import Worker
 from tagdata import TagData
 from imageloader import ImageHandler
 from discogs_client import Client
