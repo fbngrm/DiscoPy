@@ -32,10 +32,10 @@ from start_dialog_ui import StartDialogUi
 from rename_dialog_ui import RenameDialogUi
 from namebuilder import NameBuilder
 from settings_handler import SettingsHandler
+from logging_handler import setup_logging
 from tagdata import TagData
 from imageloader import ImageHandler
 from discogs_client import Client
-from logging.handlers import RotatingFileHandler
 import urllib2
 
 try:
@@ -58,26 +58,6 @@ def resource_path(relative):
 cert_path = resource_path('cacert.pem')
 if os.path.exists(cert_path):
     os.environ['REQUESTS_CA_BUNDLE'] = cert_path
-
-
-def setup_logging():
-    logpath = os.path.abspath(os.path.join(HOME, LOG_DIR))
-    if not os.path.isdir(logpath):
-        os.makedirs(logpath)
-    log_file = os.path.join(logpath, LOG_FILE)
-    logger = logging.getLogger('discopy.main')
-    file_formatter = logging.Formatter(fmt='%(threadName)s | %(filename)s: %(lineno)d | %(levelname)s: %(message)s')
-    file_handler = RotatingFileHandler(
-        log_file, maxBytes=MAX_LOG_SIZE, backupCount=3, encoding='UTF-8')
-    file_handler.setFormatter(file_formatter)
-    logger.addHandler(file_handler)
-
-    stderr_log_handler = logging.StreamHandler()
-    bash_formatter = logging.Formatter(fmt='%(threadName)s | %(filename)s: %(lineno)d | %(levelname)s: %(message)s')
-    stderr_log_handler.setFormatter(bash_formatter)
-    logger.addHandler(stderr_log_handler)
-    logger.setLevel(logging.DEBUG)
-    logger.debug('hello discopy')
 
 
 class Worker(QtCore.QObject):
