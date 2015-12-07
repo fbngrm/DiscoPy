@@ -4,6 +4,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 from constants import HOME, LOG_DIR, LOG_FILE, MAX_LOG_SIZE
 
+
 def setup_logging():
     logpath = os.path.abspath(os.path.join(HOME, LOG_DIR))
     if not os.path.isdir(logpath):
