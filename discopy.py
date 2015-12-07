@@ -1,22 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-"""
-Copyright 2015 Fabian Grimme
-
-This file is part of DiscoPy.
-
-DiscoPy is free software: you can redistribute it and/or modify it under the
-terms of the GNU General Public License as published by the Free Software
-Foundation, either version 3 of the License, or (at your option) any late
-version.
-DiscoPy is distributed in the hope that it will be useful, but WITHOUT ANY
-WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-You should have received a copy of the GNU General Public License along with
-DiscoPy. If not, see <http://www.gnu.org/licenses/>.
-"""
-
 import re
 import os
 import sys
@@ -26,10 +10,9 @@ import webbrowser
 from shutil import move
 from time import time, sleep
 from PyQt4 import QtGui, QtCore
-from dialog import Ui_MainWindow
+from ui.main_dialog_ui import Ui_MainWindow
+from ui.dialogs import RenameDialog, StartDialog
 from constants import *
-from start_dialog_ui import StartDialogUi
-from rename_dialog_ui import RenameDialogUi
 from namebuilder import NameBuilder
 from settings_handler import SettingsHandler
 from logging_handler import setup_logging
@@ -60,42 +43,10 @@ if os.path.exists(cert_path):
     os.environ['REQUESTS_CA_BUNDLE'] = cert_path
 
 
-class StartDialog(QtGui.QDialog):
-    def __init__(self, settingsHandler, parent=None):
-        QtGui.QDialog.__init__(self, parent)
-        # Init start dialog
-        self.settingsHandler = settingsHandler
-        self.ui = StartDialogUi()
-        self.ui.setupUi(self)
-        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
-
-        # Signals
-        self.ui.continueButton.clicked.connect(self._close)
-        self.show()
-
-    def _close(self):
-        settings_data = {'init_dialog': not self.ui.checkBox.isChecked()}
-        self.settingsHandler.data = settings_data
-        self.close()
-
-
-class RenameDialog(QtGui.QDialog):
-    def __init__(self, settingsHandler, parent=None):
-        QtGui.QDialog.__init__(self, parent)
-        # Init start dialog
-        self.settingsHandler = settingsHandler
-        self.ui = RenameDialogUi()
-        self.ui.setupUi(self)
-
-    def close_dialog(self):
-        settings_data = {'rename_dialog': not self.ui.checkBox.isChecked()}
-        self.settingsHandler.data = settings_data
-        self.close()
-
-
 class DiscoPy(QtGui.QMainWindow):
 
-    def __init__(self, ui, settingsHandler, client, name_builder, tagdata,
+    def __init__(
+        self, ui, settingsHandler, client, name_builder, tagdata,
             image_handler, parent=None):
         QtGui.QWidget.__init__(self, parent)
 
@@ -161,8 +112,8 @@ class DiscoPy(QtGui.QMainWindow):
         self._ui.lndt_rls.focus.connect(self._set_focus)
         self._ui.lndt_brcde.focus.connect(self._set_focus)
         self._ui.lst_ld.drop_finished.connect(self._init_drop_search)
-        self.connect(self._ui.lbl_cvr, QtCore.SIGNAL('clicked'),
-            self._get_thumb)
+        self.connect(
+            self._ui.lbl_cvr, QtCore.SIGNAL('clicked'), self._get_thumb)
         # Init
         self._set_focus()
         # Initialize the progress animation
@@ -283,7 +234,7 @@ class DiscoPy(QtGui.QMainWindow):
             self._logger.error(traceback.format_exc())
 
     def _convert_index(self, index):
-        if not '-' in index:
+        if '-' not in index:
             return index
         try:
             parts = index.split('-')
@@ -358,14 +309,22 @@ class DiscoPy(QtGui.QMainWindow):
 
         release_data['id'] = self._parsed_data_id
 
-        data = getattr(discogs_data, 'data') if hasattr(discogs_data, 'data') else {}
+        data = getattr(discogs_data, 'data') \
+            if hasattr(discogs_data, 'data') \
+            else {}
 
         release_data['uri'] = data.get('uri') or 'Unknown'
 
-        release_data['barcode'] = data.get('barcode')[0] or 'Unknown' if len(data.get('barcode') or []) else 'Unknown'
-        release_data['barcode'] = data.get('identifiers')[0].get('value') if len(data.get('identifiers') or []) else 'Unknown'
+        release_data['barcode'] = data.get('barcode')[0] or 'Unknown' \
+            if len(data.get('barcode') or []) \
+            else 'Unknown'
+        release_data['barcode'] = data.get('identifiers')[0].get('value') \
+            if len(data.get('identifiers') or []) \
+            else 'Unknown'
 
-        release_data['title'] = getattr(discogs_data, 'title') or 'Unknown' if hasattr(discogs_data, 'title') else 'Unknown'
+        release_data['title'] = getattr(discogs_data, 'title') or 'Unknown' \
+            if hasattr(discogs_data, 'title') \
+            else 'Unknown'
         release_data['title'] = re.sub(r"\(\d+\)", "", release_data['title'])
 
         # Build release name.
@@ -386,9 +345,11 @@ class DiscoPy(QtGui.QMainWindow):
                     if hasattr(track, 'position') else ''
                 track_data['index'] = self._convert_index(index)
                 track_data['artist'] = ', '.join(getattr(artist, 'name')
-                    for artist in getattr(track, 'artists')
-                    or []) if hasattr(track, 'artists') and len(track.artists) else release_data['artist']
-                track_data['artist'] = re.sub(r"\(\d+\)", "", track_data['artist'])
+                    for artist in getattr(track, 'artists') or []) \
+                    if hasattr(track, 'artists') and \
+                    len(track.artists) else release_data['artist']
+                track_data['artist'] = re.sub(
+                    r"\(\d+\)", "", track_data['artist'])
                 # Build track name.
                 track_name = self._name_builder.build_name(
                     t_syntax, release_data, track_data)
@@ -442,7 +403,9 @@ class DiscoPy(QtGui.QMainWindow):
             self._ui.lbl_rls.setText(release_data['release']['title'])
             self._ui.lbl_lbl.setText(release_data['release']['label'])
             self._ui.lbl_yr.setText(release_data['release']['year'])
-            self._ui.lbl_lnk.setText('<a href="%s">%s</a>' % (release_data['release']['uri'], release_data['release']['title']))
+            self._ui.lbl_lnk.setText('<a href="%s">%s</a>' %
+                (release_data['release']['uri'],
+                release_data['release']['title']))
 
             # Initialize the textedits.
             self._ui.lndt_brcde.setText(release_data['release']['barcode'])
@@ -613,8 +576,10 @@ class DiscoPy(QtGui.QMainWindow):
 
         if self._settingsHandler.data.get('rename_dialog'):
             # Signals
-            self._rename_dialog.ui.cancelButton.clicked.connect(lambda: close_rename_dialog(0))
-            self._rename_dialog.ui.renameButton.clicked.connect(lambda: close_rename_dialog(1))
+            self._rename_dialog.ui.cancelButton.clicked.connect(
+                lambda: close_rename_dialog(0))
+            self._rename_dialog.ui.renameButton.clicked.connect(
+                lambda: close_rename_dialog(1))
             # Show dialog
             self._rename_dialog.show()
         else:
@@ -628,8 +593,8 @@ class DiscoPy(QtGui.QMainWindow):
         data = {}
         try:
             filename = unicode(file_item.text())
-            new_filename = "".join(c for c in unicode(data_item.text())
-                if c not in r'*?"<>|')
+            new_filename = "".join(c for c in unicode(
+                data_item.text()) if c not in r'*?"<>|')
             url = file_item.url
 
             self._logger.debug('getting data for: %s' % unicode(file_item.text()))
@@ -723,7 +688,8 @@ class DiscoPy(QtGui.QMainWindow):
             try:
                 data['item'].setText(data['new_filename'])
                 data['item'].url = data['new_url']
-                self._logger.debug('successfully updated ui for file %s' % (data['new_filename']))
+                self._logger.debug('successfully updated ui for file %s' % (
+                    data['new_filename']))
             except Exception:
                 self._logger.warn('failed to update ui')
 
@@ -735,7 +701,9 @@ class DiscoPy(QtGui.QMainWindow):
                 dir_item = data[-1]['item']
                 old_url = os.path.dirname(track_item.url)
                 track_item.url = track_item.url.replace(old_url, dir_item.url)
-                self._logger.debug('updating directory url for track from: %s to %s' % (old_url, dir_item.url))
+                self._logger.debug(
+                    'updating directory url for track from: %s to %s' %
+                    (old_url, dir_item.url))
             except Exception:
                 self._logger.warn('failed to update directory url')
 
@@ -768,7 +736,9 @@ class DiscoPy(QtGui.QMainWindow):
                 old_name = os.path.basename(item[1])
                 old_file = os.path.abspath(os.path.join(curr_dir, old_name))
 
-                self._logger.debug('revert track naming \nfrom: \n%s \nto: \n%s' % (curr_file, old_file))
+                self._logger.debug(
+                    'revert track naming \nfrom: \n%s \nto: \n%s' %
+                    (curr_file, old_file))
 
                 os.rename(curr_file, old_file)
         except Exception:
@@ -776,7 +746,9 @@ class DiscoPy(QtGui.QMainWindow):
 
         # Undo directory renaming
         try:
-            self._logger.debug('revert dir naming \nfrom: \n%s \nto: \n%s' % (items[-1][0], items[-1][1]))
+            self._logger.debug(
+                'revert dir naming \nfrom: \n%s \nto: \n%s' %
+                (items[-1][0], items[-1][1]))
             os.rename(items[-1][0], items[-1][1])
         except Exception:
             self._logger.error('failed to revert directory naming')

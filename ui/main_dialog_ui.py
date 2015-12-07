@@ -1,18 +1,7 @@
 # -*- coding: utf-8 -*-
-
-"""
-Copyright 2015 Fabian Grimme
-
-This file is part of DiscoPy.
-
-DiscoPy is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
-DiscoPy is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
-You should have received a copy of the GNU General Public License along with D
-"""
-
 import os
 from PyQt4 import QtCore, QtGui
-
+from constants import SUPPORTED, TREE_ICONS
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
 except AttributeError:
@@ -28,17 +17,6 @@ try:
 except AttributeError:
     def _translate(context, text, disambig):
         return QtGui.QApplication.translate(context, text, disambig)
-
-SPPRTD = ['.mp3', '.aac', '.alac',
-    '.ogg', '.asf', '.mpc',
-    '.aiff', '.opus', '.mp4',
-    '.wav', '.flac', '.aif',
-    '.mid', '.m4a', '.ape']
-
-ITM_TPS = {
-    "release": "record_30px.png",
-    "track": "track_30px.png"
-}
 
 
 class ClickableLabel(QtGui.QLabel):
@@ -88,7 +66,7 @@ class DNDListWidget(QtGui.QListWidget):
                         if os.path.isfile(os.path.join(path, f))]
                     for file_ in files:
                         name, ext = os.path.splitext(file_)
-                        if ext.lower() not in SPPRTD:
+                        if ext.lower() not in SUPPORTED:
                             continue
                         links.append(file_)
                     links.append(path)
@@ -105,7 +83,7 @@ class DNDListWidget(QtGui.QListWidget):
             if os.path.isfile(os.path.join(path, f))]
         for file_ in files:
             name, ext = os.path.splitext(file_)
-            if ext.lower() not in SPPRTD:
+            if ext.lower() not in SUPPORTED:
                 continue
             links.append(file_)
         links.append(path)
@@ -122,7 +100,7 @@ class DNDListWidget(QtGui.QListWidget):
             track_data = []
             for file_ in data:
                 name, ext = os.path.splitext(file_)
-                if ext.lower() in SPPRTD:
+                if ext.lower() in SUPPORTED:
                     track_data.append(file_)
                 else:
                     release_data = file_
@@ -143,7 +121,7 @@ class DNDListWidget(QtGui.QListWidget):
     def data_dropped(self, data, type_, editable=False, meta=None, url=None):
         # Get the icon for the listwidgetitem.
         icon_path = os.path.abspath(os.path.join(
-            os.path.dirname(__file__), 'icons', ITM_TPS[type_]))
+            os.path.dirname(__file__), 'icons', TREE_ICONS[type_]))
         icon = QtGui.QIcon(icon_path)
 
         # Create a listwidgetitem.

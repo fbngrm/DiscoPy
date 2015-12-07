@@ -21,3 +21,16 @@ if os.name == 'posix':
     LOG_DIR = '.discopy'
 else:
     LOG_DIR = 'discopy'
+
+SUPPORTED = [
+    '.mp3', '.aac', '.alac',
+    '.ogg', '.asf', '.mpc',
+    '.aiff', '.opus', '.mp4',
+    '.wav', '.flac', '.aif',
+    '.mid', '.m4a', '.ape'
+    ]
+
+TREE_ICONS = {
+    "release": "record_30px.png",
+    "track": "track_30px.png"
+}
