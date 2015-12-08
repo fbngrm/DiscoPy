@@ -1,0 +1,6 @@
+('/home/grim/wrk/py/discopy_venv/discopy/settings',
+ 'settings',
+ [],
+ [('settings/settings.json',
+   '/home/grim/wrk/py/discopy_venv/discopy/settings/settings.json',
+   'DATA')])

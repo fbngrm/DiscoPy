@@ -1,0 +1,1 @@
+('/home/grim/wrk/py/discopy_venv/discopy/images', 'images', [], [])

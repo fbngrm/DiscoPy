@@ -1,6 +1,4 @@
 *.pyc
-/dist
-/build
 /__pycache__
 /test
 /thumbs/*
