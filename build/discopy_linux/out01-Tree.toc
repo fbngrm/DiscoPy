@@ -1,1 +1,0 @@
-('/home/grim/wrk/py/discopy_venv/discopy/thumbs', 'thumbs', [], [])
