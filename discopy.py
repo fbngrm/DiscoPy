@@ -1043,5 +1043,8 @@ if __name__ == "__main__":
     win.show()
 
     if settingsHandler.data.get('init_dialog'):
+        print 'yo'
         StartDialog(settingsHandler, win)
+    else:
+        'no'
     sys.exit(app.exec_())

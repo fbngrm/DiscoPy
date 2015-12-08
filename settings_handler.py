@@ -11,9 +11,6 @@ if os.name == 'posix':
 else:
     LOG_DIR = 'discopy'
 
-STNGS_PATH = os.path.abspath(
-    os.path.join(HOME, LOG_DIR, STNGS_DIR, STNGS_FILE))
-
 
 def resource_path(relative):
     return os.path.join(getattr(
@@ -24,15 +21,11 @@ class SettingsHandler(object):
 
     def __init__(self):
         self._data = None
-
-        if os.path.isfile(STNGS_PATH):
-            self.path = STNGS_PATH
-        else:
-            self.path = resource_path(
-                os.path.join(LOG_DIR, STNGS_DIR, STNGS_FILE))
+        self.path = os.path.abspath(
+            os.path.join(HOME, LOG_DIR, STNGS_DIR, STNGS_FILE))
 
     def setup(self):
-        # Ensure the settings directory exists.
+        # Ensure the settings directory exists in users home dir.
         settings_dir = os.path.abspath(os.path.join(HOME, LOG_DIR, STNGS_DIR))
         if not os.path.isdir(settings_dir):
             os.makedirs(settings_dir)

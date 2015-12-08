@@ -62,8 +62,11 @@ class DNDListWidget(QtGui.QListWidget):
                     continue
                 else:
                     self.clear()
-                    files = [os.path.join(path, f) for f in os.listdir(path)
-                        if os.path.isfile(os.path.join(path, f))]
+                    files = [
+                        os.path.join(path, f)
+                        for f in os.listdir(path)
+                        if os.path.isfile(os.path.join(path, f))
+                        ]
                     for file_ in files:
                         name, ext = os.path.splitext(file_)
                         if ext.lower() not in SUPPORTED:
@@ -79,8 +82,11 @@ class DNDListWidget(QtGui.QListWidget):
 
     def emit_drop_event(self, path):
         links = []
-        files = [os.path.join(path, f) for f in os.listdir(path)
-            if os.path.isfile(os.path.join(path, f))]
+        files = [
+            os.path.join(path, f)
+            for f in os.listdir(path)
+            if os.path.isfile(os.path.join(path, f))
+            ]
         for file_ in files:
             name, ext = os.path.splitext(file_)
             if ext.lower() not in SUPPORTED:
@@ -121,7 +127,7 @@ class DNDListWidget(QtGui.QListWidget):
     def data_dropped(self, data, type_, editable=False, meta=None, url=None):
         # Get the icon for the listwidgetitem.
         icon_path = os.path.abspath(os.path.join(
-            os.path.dirname(__file__), 'icons', TREE_ICONS[type_]))
+            os.path.dirname(__file__), '..', 'icons', TREE_ICONS[type_]))
         icon = QtGui.QIcon(icon_path)
 
         # Create a listwidgetitem.
