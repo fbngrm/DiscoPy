@@ -25,33 +25,32 @@ Builds are available for Linux, Windows and Mac OS. See <a href="/discopy#instal
     
 ##How to use DiscoPy
   
-1. *Drop your files*
-  + Drop your files to into the left table.
+1. **Drop your files**
+  + Drop your files into the left table.
   + DiscoPy will guess the search query. It will appear in the Release Name text field.
   + DiscoPy will automatically search for the release if there is meta information available in your files.
  
-2. Search
-   *If the automatic search is not triggered, you can search manually.
-   *Check or enter the Search button.
+2. **Search**
+  + If the automatic search is not triggered, you can search manually.
+  + Check or enter the Search button.
   
-3. Enter the syntax
-   *Enter your preferred Release Syntax to compile the directory name.
-   *Enter the Track Syntax to compile the names for the music files.
-   *Hit enter to show the compiled names in the search result table.
-   *See <a href="#syntax-options">Syntax Options</a> for available syntax elements.
+3. **Enter the syntax**
+  + Enter your preferred Release Syntax to compile the directory name.
+  + Enter the Track Syntax to compile the names for the music files.
+  + Hit enter to show the compiled names in the search result table.
+  + See <a href="#syntax-options">Syntax Options</a> for available syntax elements.
     
-4. Order your files
-   *All files in the left table will be renamed with the string of the corresponding row in the right table. Make sure the order of your files (left table) correlates the order of the search results (right table)!
-    *Items can be sorted by drag and drop.
-    *Items can be deleted by pressing return or delete.
-    *Search result items can be edited by double clicking.
+4. **Order your files**
+  + All files in the left table will be renamed with the string of the corresponding row in the right table. Make sure the order of your files (left table) correlates the order of the search results (right table)!
+  + Items can be sorted by drag and drop.
+  + Items can be deleted by pressing return or delete.
+  + Search result items can be edited by double clicking.
          
-5. Rename your files
-    
-   *Rename your files by pressing the Rename button.
-   *If something went wrong the renaming can be reverted by pressing the Undo button.
-   *Tag your files by pressing the Tag button.
-   *Download the artwork by pressing the Artwork button.
+5. **Rename your files**
+  + Rename your files by pressing the Rename button.
+  + If something went wrong the renaming can be reverted by pressing the Undo button.
+  + Tag your files by pressing the Tag button.
+  + Download the artwork by pressing the Artwork button.
 
 ##Syntax Options
   
