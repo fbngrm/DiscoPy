@@ -4,7 +4,7 @@
 
 **DiscoPy** is a music file renamer and tagger that names files according to your preferred syntax and is written in pure Python (2.7). The meta data of your music files - like artist, labels, release date etc. - can be easily included in your naming scheme. If you like you can also download all corresponding artwork of a release with just one click.
 
-## Overview
+# Overview
   
 What is DiscoPy    
 How to use DiscoPy
@@ -14,7 +14,7 @@ How to install DiscoPy
 Images
 License
     
-##What is DiscoPy
+#What is DiscoPy
   
 DiscoPy is a music file renamer and tagger that names files according to your preferred syntax. The meta data of your music files - like artist, labels, release date etc. - can be easily included in your naming scheme. If you like you can also download all corresponding artwork of a release with one click. 
 
@@ -23,7 +23,7 @@ DiscoPy uses the <a href="http://www.discogs.com">Discogs</a> database as source
 It is written in <a href="http://www.python.org">Python (2.7)</a> and uses <a href="https://riverbankcomputing.com/software/pyqt/intro">PyQt</a> for the UI.
 Builds are available for Linux, Windows and Mac OS. See <a href="/discopy#installation">How to install DiscoPy</a> for more information.
     
-##How to use DiscoPy
+#How to use DiscoPy
   
 **1. Drop your files**
   + Drop your files into the left table.
@@ -52,10 +52,11 @@ Builds are available for Linux, Windows and Mac OS. See <a href="/discopy#instal
   + Tag your files by pressing the *Tag* button.
   + Download the artwork by pressing the *Artwork* button.
 
-> ** Again: Make sure the order of your files in the left table correlates the order of the search results in the right table before renaming!**
+
+> Again: Make sure the order of your files in the left table correlates the order of the search results in the right table before renaming!
 
 
-##Syntax Options
+#Syntax Options
   
 **Release Syntax**
 + The Release Syntax text field is used to compile the name for the directory that contains the music files.
@@ -108,7 +109,7 @@ Builds are available for Linux, Windows and Mac OS. See <a href="/discopy#instal
 | TRACK   | the uppercase track name    |
      
 ===
-### Example
+## Example
   
 **Release Syntax**
     
@@ -123,14 +124,14 @@ Builds are available for Linux, Windows and Mac OS. See <a href="/discopy#instal
 | Kraftwerk_-_Kraftwerk_07_it's_more_fun_to_compute.MP3 | index artist - track | 07 kraftwerk - it's more fun to compute.mp3 |
       
     
-##User Interface
+#User Interface
   <img src="/icons/start.png" alt="DiscoPy" >
   <img src="/icons/mainwindow.png" alt="DiscoPy" >
     
-##How to install DiscoPy
+#How to install DiscoPy
 You may want to install DiscoPy in a `virtualenv` containing PyQt4. After installing the dependencies with `pip install -e requirements.txt` you can run DiscoPy with `python discopy.py`.
 
-##License
+#License
 GNU - General Public License 3.0
 
     
