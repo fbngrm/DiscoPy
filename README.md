@@ -1,6 +1,7 @@
 # DiscoPy
 
 <img src="/icons/discopy.png" alt="DiscoPy" width="250px">
+
 It's more fun to compute!
 
 # Overview
