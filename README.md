@@ -2,11 +2,9 @@
 
 <img src="/icons/discopy.png" alt="DiscoPy" width="250px">
 
-**DiscoPy** is a music file renamer and tagger that names files according to your preferred syntax and is written in pure Python (2.7). The meta data of your music files - like artist, labels, release date etc. - can be easily included in your naming scheme. If you like you can also download all corresponding artwork of a release with just one click.
-
 # Overview
   
-What is DiscoPy    
+[What is DiscoPy](#What is DiscoPy)
 How to use DiscoPy
 Syntax Options
 Example
