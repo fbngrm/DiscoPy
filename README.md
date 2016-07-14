@@ -19,7 +19,7 @@ DiscoPy is a music file renamer and tagger that names files according to your pr
 DiscoPy uses the <a href="http://www.discogs.com">Discogs</a> database as source for the metadata and provides an (hopefully) easy to use graphical interface.
     
 It is written in <a href="http://www.python.org">Python (2.7)</a> and uses <a href="https://riverbankcomputing.com/software/pyqt/intro">PyQt</a> for the UI.
-Builds are available for Linux, Windows and Mac OS. See <a href="/discopy#installation">How to install DiscoPy</a> for more information.
+Builds are available for Linux, Windows and Mac OS. See (nstallation](#installation) for more information.
     
 #How To
   
