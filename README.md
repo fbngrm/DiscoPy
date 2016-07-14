@@ -68,23 +68,18 @@ Builds are available for Linux, Windows and Mac OS. See <a href="/discopy#instal
 | artist  | the lowercase artist name   |
 | Artist  | the capitalized artist name |
 | ARTIST  | the uppercase artist name   |
-
 | release | the lowercase release name  |
 | Release | the capitalized release name|
 | RELEASE | the uppercase release name  |
-
 | label   | the lowercase label names   |
 | Label   | the capitalized label names |
 | LABEL   | the uppercase label names   |
-
 | country | the lowercase country name  |
 | Country | the capitalized country name|
 | COUNTRY | the uppercase country name  |
-
 | genre   | the lowercase genre names   |
 | Genre   | the capitalized genre names |
 | GENRE   | the uppercase genre names   |
-
 | year    | the release year            |
 | Year    | the release year            |
 | YEAR    | the release year            |
@@ -103,7 +98,6 @@ Builds are available for Linux, Windows and Mac OS. See <a href="/discopy#instal
 | index   | the lowercase track index   |
 | Index   | the capitalized track index |
 | INDEX   | the uppercase track index   |
-
 | track   | the lowercase track name    |
 | Track   | the capitalized track name  |
 | TRACK   | the uppercase track name    |
