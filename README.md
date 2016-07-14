@@ -124,8 +124,8 @@ Builds are available for Linux, Windows and Mac OS. See <a href="/discopy#instal
       
     
 ##User Interface
-  <img src="/icons/start.png" alt="DiscoPy" width="250px">
-  <img src="/icons/mainwindow.png" alt="DiscoPy" width="250px">
+  <img src="/icons/start.png" alt="DiscoPy" >
+  <img src="/icons/mainwindow.png" alt="DiscoPy" >
     
 ##How to install DiscoPy
 You may want to install DiscoPy in a `virtualenv` containing PyQt4. After installing the dependencies with `pip install -e requirements.txt` you can run DiscoPy with `python discopy.py`.
