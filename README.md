@@ -4,13 +4,13 @@
 
 # Overview
   
-[What is DiscoPy](#What-is-DiscoPy)
-[How To](#How-To)
-[Syntax Options](#Syntax-Options)
-[Example](#Example)
-[User Interface](#User-Interface)
-[Installation](#Installation)
-[License](#License)
+[What is DiscoPy](#what-is-discoPy)
+[How To](#how-to)
+[Syntax Options](#syntax-options)
+[Example](#example)
+[User Interface](#user-interface)
+[Installation](#installation)
+[License](#license)
     
 #What is DiscoPy
   
