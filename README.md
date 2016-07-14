@@ -100,7 +100,8 @@ Builds are available for Linux, Windows and Mac OS. See <a href="/discopy#instal
 | Track   | the capitalized track name  |
 | TRACK   | the uppercase track name    |
      
-===a
+===
+
 ## Example
   
 **Release Syntax**
