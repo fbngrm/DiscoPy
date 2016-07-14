@@ -1,9 +1,9 @@
 # DiscoPy
 
 <img src="/icons/discopy.png" alt="DiscoPy" width="250px">
+It's more fun to compute!
 
 # Overview
-It's more fun to compute!
   
 + [What is DiscoPy](#what-is-discoPy)
 + [How To](#how-to)
