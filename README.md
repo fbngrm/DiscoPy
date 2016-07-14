@@ -1,8 +1,8 @@
 # DiscoPy
 
-<img src="/icons/discopy_800px.png" alt="DiscoPy" width="250px">
+<img src="/icons/discopy_800px.png" alt="DiscoPy" width="400px">
 
-DiscoPy is a music file renamer and tagger that names files according to your preferred syntax and is written in pure Python (2.7). The meta data of your music files - like artist, labels, release date etc. - can be easily included in your naming scheme. If you like you can also download all corresponding artwork of a release with just one click.
+**DiscoPy** is a music file renamer and tagger that names files according to your preferred syntax and is written in pure Python (2.7). The meta data of your music files - like artist, labels, release date etc. - can be easily included in your naming scheme. If you like you can also download all corresponding artwork of a release with just one click.
 
 ## Overview
   
@@ -25,33 +25,33 @@ Builds are available for Linux, Windows and Mac OS. See <a href="/discopy#instal
     
 ##How to use DiscoPy
   
-    1. Drop your files
-      *Drop your files to into the left table.
-      *DiscoPy will guess the search query. It will appear in the Release Name text field.
-      *DiscoPy will automatically search for the release if there is meta information available in your files.
- I    
-    2. Search
-      *If the automatic search is not triggered, you can search manually.
-      *Check or enter the Search button.
+1. Drop your files
+  *Drop your files to into the left table.
+  *DiscoPy will guess the search query. It will appear in the Release Name text field.
+  *DiscoPy will automatically search for the release if there is meta information available in your files.
+ 
+2. Search
+   *If the automatic search is not triggered, you can search manually.
+   *Check or enter the Search button.
+  
+3. Enter the syntax
+   *Enter your preferred Release Syntax to compile the directory name.
+   *Enter the Track Syntax to compile the names for the music files.
+   *Hit enter to show the compiled names in the search result table.
+   *See <a href="#syntax-options">Syntax Options</a> for available syntax elements.
     
-    3. Enter the syntax
-      *Enter your preferred Release Syntax to compile the directory name.
-      *Enter the Track Syntax to compile the names for the music files.
-      *Hit enter to show the compiled names in the search result table.
-      *See <a href="#syntax-options">Syntax Options</a> for available syntax elements.
-    
-    4. Order your files
-      *All files in the left table will be renamed with the string of the corresponding row in the right table. Make sure the order of your files (left table) correlates the order of the search results (right table)!
-       *Items can be sorted by drag and drop.
-       *Items can be deleted by pressing return or delete.
-       *Search result items can be edited by double clicking.
+4. Order your files
+   *All files in the left table will be renamed with the string of the corresponding row in the right table. Make sure the order of your files (left table) correlates the order of the search results (right table)!
+    *Items can be sorted by drag and drop.
+    *Items can be deleted by pressing return or delete.
+    *Search result items can be edited by double clicking.
          
-    5. Rename your files
+5. Rename your files
     
-      *Rename your files by pressing the Rename button.
-      *If something went wrong the renaming can be reverted by pressing the Undo button.
-      *Tag your files by pressing the Tag button.
-      *Download the artwork by pressing the Artwork button.
+   *Rename your files by pressing the Rename button.
+   *If something went wrong the renaming can be reverted by pressing the Undo button.
+   *Tag your files by pressing the Tag button.
+   *Download the artwork by pressing the Artwork button.
 
 ##Syntax Options
   
