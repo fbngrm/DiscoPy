@@ -2,7 +2,7 @@
 
 <img src="/icons/discopy.png" alt="DiscoPy" width="250px">
 
-It's more fun to compute!
+<a href="https://www.youtube.com/watch?v=72Qa5T6RXVc">It's more fun to compute!</a>
 
 # Overview
   
