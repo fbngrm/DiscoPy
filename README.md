@@ -5,11 +5,17 @@
 # Overview
   
 [What is DiscoPy](#what-is-discoPy)
+
 [How To](#how-to)
+
 [Syntax Options](#syntax-options)
+
 [Example](#example)
+
 [User Interface](#user-interface)
+
 [Installation](#installation)
+
 [License](#license)
     
 #What is DiscoPy
@@ -89,7 +95,7 @@ Builds are available for Linux, Windows and Mac OS. See <a href="/discopy#instal
 + The syntax can be an abritrary alpha-numeric string and can contain special characters except for Discogs meta data, specific syntax keywords can be used that will be substituted by their corresponding value from the search results.
 + Press enter to update the search result table with the new syntax after modifying the syntax fileds.
     
-**Track Syntx Keywords**
+**Track Syntax Keywords**
 
 | Keyword | Rendered String             |
 | --------|-----------------------------|     
@@ -100,7 +106,7 @@ Builds are available for Linux, Windows and Mac OS. See <a href="/discopy#instal
 | Track   | the capitalized track name  |
 | TRACK   | the uppercase track name    |
      
-===
+===a
 ## Example
   
 **Release Syntax**
