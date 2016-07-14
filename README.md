@@ -3,6 +3,7 @@
 <img src="/icons/discopy.png" alt="DiscoPy" width="250px">
 
 # Overview
+It's more fun to compute!
   
 + [What is DiscoPy](#what-is-discoPy)
 + [How To](#how-to)
