@@ -25,10 +25,10 @@ Builds are available for Linux, Windows and Mac OS. See <a href="/discopy#instal
     
 ##How to use DiscoPy
   
-1. Drop your files
-  *Drop your files to into the left table.
-  *DiscoPy will guess the search query. It will appear in the Release Name text field.
-  *DiscoPy will automatically search for the release if there is meta information available in your files.
+1. *Drop your files*
+   +Drop your files to into the left table.
+   +DiscoPy will guess the search query. It will appear in the Release Name text field.
+   +DiscoPy will automatically search for the release if there is meta information available in your files.
  
 2. Search
    *If the automatic search is not triggered, you can search manually.
