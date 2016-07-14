@@ -4,13 +4,13 @@
 
 # Overview
   
-[What is DiscoPy](#What is DiscoPy)
-How to use DiscoPy
-Syntax Options
-Example
-How to install DiscoPy
-Images
-License
+[What is DiscoPy](#What-is-DiscoPy)
+[How To](#How-To)
+[Syntax Options](#Syntax-Options)
+[Example](#Example)
+[User Interface](#User-Interface)
+[Installation](#Installation)
+[License](#License)
     
 #What is DiscoPy
   
@@ -21,7 +21,7 @@ DiscoPy uses the <a href="http://www.discogs.com">Discogs</a> database as source
 It is written in <a href="http://www.python.org">Python (2.7)</a> and uses <a href="https://riverbankcomputing.com/software/pyqt/intro">PyQt</a> for the UI.
 Builds are available for Linux, Windows and Mac OS. See <a href="/discopy#installation">How to install DiscoPy</a> for more information.
     
-#How to use DiscoPy
+#How To
   
 **1. Drop your files**
   + Drop your files into the left table.
@@ -120,7 +120,7 @@ Builds are available for Linux, Windows and Mac OS. See <a href="/discopy#instal
   <img src="/icons/start.png" alt="DiscoPy" >
   <img src="/icons/mainwindow.png" alt="DiscoPy" >
     
-#How to install DiscoPy
+#Installation
 You may want to install DiscoPy in a `virtualenv` containing PyQt4. After installing the dependencies with `pip install -e requirements.txt` you can run DiscoPy with `python discopy.py`.
 
 #License
