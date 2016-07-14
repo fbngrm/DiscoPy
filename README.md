@@ -27,40 +27,38 @@ Builds are available for Linux, Windows and Mac OS. See <a href="/discopy#instal
   
 **1. Drop your files**
   + Drop your files into the left table.
-  + DiscoPy will guess the search query. It will appear in the Release Name text field.
+  + DiscoPy will guess the search query. It will appear in the *Release Name* text field.
   + DiscoPy will automatically search for the release if there is meta information available in your files.
  
 **2. Search**
   + If the automatic search is not triggered, you can search manually.
-  + Check or enter the Search button.
+  + Enter the release name, the Dicogs URL or the Barcode ID and hit the *Search* button.
   
 **3. Enter the syntax**
-  + Enter your preferred Release Syntax to compile the directory name.
-  + Enter the Track Syntax to compile the names for the music files.
-  + Hit enter to show the compiled names in the search result table.
+  + Enter your preferred *Release Syntax* to compile the directory name.
+  + Enter the *Track Syntax* to compile the names for the music files.
+  + Hit enter to show the compiled names in the search result table (right table).
   + See <a href="#syntax-options">Syntax Options</a> for available syntax elements.
     
 **4. Order your files**
-  + All files in the left table will be renamed with the string of the corresponding row in the right table. Make sure the order of your files (left table) correlates the order of the search results (right table)!
+  + All files in the left table will be renamed with the string of the corresponding row in the right table. **Make sure the order of your files (left table) correlates the order of the search results (right table)!**
   + Items can be sorted by drag and drop.
   + Items can be deleted by pressing return or delete.
-  + Search result items can be edited by double clicking.
+  + Search result items can be edited by double clicking the text.
          
 **5. Rename your files**
-  + Rename your files by pressing the Rename button.
-  + If something went wrong the renaming can be reverted by pressing the Undo button.
-  + Tag your files by pressing the Tag button.
-  + Download the artwork by pressing the Artwork button.
+  + Rename your files by hitting the *Rename* button.
+  + If something went wrong the renaming can be reverted by using the *Undo* button.
+  + Tag your files by pressing the *Tag* button.
+  + Download the artwork by pressing the *Artwork* button.
+
+> ** Again: Make sure the order of your files in the left table correlates the order of the search results in the right table before renaming!**
+
 
 ##Syntax Options
   
 **Release Syntax**
 + The Release Syntax text field is used to compile the name for the directory that contains the music files.
-    
-**Track Syntax**
-+ The Track Syntax text field is used to compile the names for the music files.    
-+ The syntax can be an abritrary alpha-numeric string and can contain special characters except for Discogs meta data, specific syntax keywords can be used that will be substituted by their corresponding value from the search results.
-+ Press enter to update the search result table with the new syntax after modifying the syntax fileds.
     
 **Release Syntax Keywords**
 
@@ -69,40 +67,47 @@ Builds are available for Linux, Windows and Mac OS. See <a href="/discopy#instal
 | artist  | the lowercase artist name   |
 | Artist  | the capitalized artist name |
 | ARTIST  | the uppercase artist name   |
-| --------|-----------------------------|      
+
 | release | the lowercase release name  |
 | Release | the capitalized release name|
 | RELEASE | the uppercase release name  |
-| --------|-----------------------------|      
+
 | label   | the lowercase label names   |
 | Label   | the capitalized label names |
 | LABEL   | the uppercase label names   |
-| --------|-----------------------------|      
+
 | country | the lowercase country name  |
 | Country | the capitalized country name|
 | COUNTRY | the uppercase country name  |
-| --------|-----------------------------|      
+
 | genre   | the lowercase genre names   |
 | Genre   | the capitalized genre names |
 | GENRE   | the uppercase genre names   |
-| --------|-----------------------------|      
+
 | year    | the release year            |
 | Year    | the release year            |
 | YEAR    | the release year            |
+
+===
+
+**Track Syntax**
++ The Track Syntax text field is used to compile the names for the music files.    
++ The syntax can be an abritrary alpha-numeric string and can contain special characters except for Discogs meta data, specific syntax keywords can be used that will be substituted by their corresponding value from the search results.
++ Press enter to update the search result table with the new syntax after modifying the syntax fileds.
     
-**Track specific keywords**
+**Track Syntx Keywords**
 
 | Keyword | Rendered String             |
 | --------|-----------------------------|     
 | index   | the lowercase track index   |
 | Index   | the capitalized track index |
 | INDEX   | the uppercase track index   |
-| --------|-----------------------------|      
+
 | track   | the lowercase track name    |
 | Track   | the capitalized track name  |
 | TRACK   | the uppercase track name    |
      
-
+===
 ### Example
   
 **Release Syntax**
@@ -123,7 +128,7 @@ Builds are available for Linux, Windows and Mac OS. See <a href="/discopy#instal
   <img src="/icons/mainwindow.png" alt="DiscoPy" width="250px">
     
 ##How to install DiscoPy
-You may want to install DiscoPy in a `virtualenv` containing PyQt4. After installing the dependencies with `pip install -e requirements.txt` you can run the DiscoPy with `python discopy.py`.
+You may want to install DiscoPy in a `virtualenv` containing PyQt4. After installing the dependencies with `pip install -e requirements.txt` you can run DiscoPy with `python discopy.py`.
 
 ##License
 GNU - General Public License 3.0
