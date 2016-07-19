@@ -123,7 +123,7 @@ Builds are available for Linux, Windows and Mac OS. See [Installation](#installa
   <img src="/icons/mainwindow.png" alt="DiscoPy" >
     
 #Installation
-You may want to install DiscoPy in a `virtualenv` containing PyQt4. After installing the dependencies with `pip install -e requirements.txt` you can run DiscoPy with `python discopy.py`.
+You may want to install DiscoPy in a `virtualenv` containing PyQt4. After installing the dependencies with `pip install -r requirements.txt` you can run DiscoPy with `python discopy.py`.
 
 #License
 GNU - General Public License 3.0
