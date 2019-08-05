@@ -88,7 +88,7 @@ Builds are available for Linux, Windows and Mac OS. See [Installation](#installa
 
 **Track Syntax**
 + The Track Syntax text field is used to compile the names for the music files.    
-+ The syntax can be an abritrary alpha-numeric string and can contain special characters except for Discogs meta data, specific syntax keywords can be used that will be substituted by their corresponding value from the search results.
++ The syntax can be an arbitrary alpha-numeric string and can contain special characters except for Discogs meta data, specific syntax keywords can be used that will be substituted by their corresponding value from the search results.
 + Press enter to update the search result table with the new syntax after modifying the syntax fileds.
     
 **Track Syntax Keywords**
